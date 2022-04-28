@@ -23,6 +23,12 @@ push:
 test:
 	go test -v ./... 2>&1 | tee test-output.txt
 
+sonar:
+	mkdir -p gen
+	go test `go list ./... | grep -vE "./test"` \
+	   -race -covermode=atomic -json \
+	   -coverprofile=$(COVER_FILE)
+
 test-coverage:
 	go test -short -coverprofile cover.out -covermode=atomic ${PKG_LIST}
 	cat cover.out >> test-output.txt
