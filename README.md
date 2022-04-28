@@ -1,8 +1,6 @@
 # migrate-leaves-to-xero
 This is a project to automate the leave migration process i.e. migrating the leaves entered in Krow tool to Xero.
 
-Confluence page [here](https://mantelgroup.atlassian.net/wiki/spaces/DIG/pages/853639229/automation+of+leave+from+krow+to+xero)
-
 
 # The Problem
 - Leave is entered by team members into krow and on weekly basis the Operations Team have to perform a manual extract of leave and enter into xero.
@@ -31,16 +29,16 @@ Confluence page [here](https://mantelgroup.atlassian.net/wiki/spaces/DIG/pages/8
 * Public Holiday is not a category in Xero as public holidays are separate from leave
 
 # Additional Rules
-* Annual Leave - allowed to go to negative 40 hours, if more than negative 40 hours leave is taken then automatically gets changed to unpaid leave
-* Personal/Carers Leave - allowed to go to negative 16 hours, if more leave is taken than - 16 hours then it automatically gets changed to unpaid leave
-* Parental Leave - if more leave is taken than available then it automatically gets changed to unpaid leave
-* Purchased Leave - if more leave is taken than available then it automatically gets changed to unpaid leave
-* Compassionate Leave - if more leave is taken than available then it automatically gets rejected
-* Jury Duty - if more leave is taken than available then it automatically gets rejected
-* If a leave category is not available then it automatically gets rejected
-* All items rejected need to be clearly reported so the operations team can investigate and manually fix
-* All changes to leave types from the Krow timesheet extract to Xero need to be clearly reported so I can message the individuals and let them know that they had insufficient leave
-* All items entered into Xero need to be reported for auditing
+* Annual Leave - allowed to go to negative 40 hours, if more than negative 40 hours leave is taken then automatically gets changed to unpaid leave.
+* Personal/Carers Leave - allowed to go to negative 16 hours, if more leave is taken than - 16 hours then it automatically gets changed to unpaid leave.
+* Parental Leave - if more leave is taken than available then it automatically gets changed to unpaid leave.
+* Purchased Leave - if more leave is taken than available then it automatically gets changed to unpaid leave.
+* Compassionate Leave - if more leave is taken than available then it automatically gets rejected.
+* Jury Duty - if more leave is taken than available then it automatically gets rejected.
+* If a leave category is not available then it automatically gets rejected.
+* All items rejected need to be clearly reported so the operations team can investigate and manually fix.
+* All changes to leave type from the Krow timesheet extract to Xero need to be clearly reported, so I can message the individuals and let them know that they had insufficient leave.
+* All items entered into Xero need to be reported for auditing.
 
 # Xero OAuth Code Flow
 
@@ -50,18 +48,12 @@ Confluence page [here](https://mantelgroup.atlassian.net/wiki/spaces/DIG/pages/8
 ![alt text](https://developer.xero.com/static/images/documentation/authflow.svg)
 
 # Implementation Details
-* App URL is http://migrate-leaves-to-xero.sandbox.digio.com.au/
-* This app is running in DigIO sandbox AWS account. Both the react frontend and the go backend is running as docker containers in the same EC2 instance.
-* The connect to Xero button on the landing page redirects a user to the Xero login page. After successful Auth, the Auth token JSON (Valid for 30 mins) is written to the disk. The location can be changed in the .env file property AUTH_TOKEN_FILE_LOCATION.
+* This app is running in DigIO sandbox AWS account. Both the React frontend and the go backend is running as docker containers in the same EC2 instance.
+* The `connect to Xero` button on the landing page redirects a user to the Xero login page. After successful Auth, the Auth token JSON (Valid for 30 mins) is written to the disk. The location can be changed in the .env file property AUTH_TOKEN_FILE_LOCATION.
 * A React Frontend (File Upload UI) is used to upload the leave extract in .xlsx format from Krow.
 * A Go Backend is used to process the leaves and apply leave in Xero.
 * Error and Audit reporting is sent to operations team email address. The from and to email can be configured in .env file. (Please add and verify the email address in AWS SES Dashboard)
-* Xero Auth process needs a HTTPS endpoint for the redirect URL and hence a AWS LB (Application Type) is used to route the HTTPS traffic to the Go backend running on HTTP.
-* A Route53 record set (LB as Alias target) has been added to leaverage the existing hosted zone sandbox.digio.com.au.
+* Xero Auth process needs an HTTPS endpoint for the redirect URL and hence an AWS LB (Application Type) is used to route the HTTPS traffic to the Go backend running on HTTP.
+* A Route53 record set (LB as Alias target) has been added to leverage the existing hosted zone `sandbox.digio.com.au`.
 
 ![Leave Migration Tech Flow](source/images/Leave Migration Flow.png)
-
-# Deploy to Prod
-* This app is running in DigIO sandbox AWS account. To deploy a new version of the app, commit changes and unblock the deploy
-step in CI pipeline.
-* Gitlab runner config details [here](https://mantelgroup.atlassian.net/wiki/spaces/OP/pages/629243910/GitLab+CI+Setup)
