@@ -9,7 +9,7 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/joho/godotenv v1.4.0
 	github.com/rs/cors v1.8.2
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.5.1
 	github.com/tealeg/xlsx v1.0.5
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
@@ -18,7 +18,6 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.1.0 // indirect
