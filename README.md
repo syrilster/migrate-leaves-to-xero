@@ -56,4 +56,4 @@ This is a project to automate the leave migration process i.e. migrating the lea
 * Xero Auth process needs an HTTPS endpoint for the redirect URL and hence an AWS LB (Application Type) is used to route the HTTPS traffic to the Go backend running on HTTP.
 * A Route53 record set (LB as Alias target) has been added to leverage the existing hosted zone `sandbox.digio.com.au`.
 
-![Leave Migration Tech Flow](source/images/Leave Migration Flow.png)
+![Leave Migration Tech Flow](images/Leave Migration Flow.png)

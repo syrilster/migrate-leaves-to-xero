@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+const filePerm = 0600
+
 type Service struct {
 	xeroKey          string
 	xeroSecret       string
@@ -73,7 +75,7 @@ func (service Service) OAuthService(ctx context.Context, code string) (*model.Xe
 		return nil, err
 	}
 
-	err = ioutil.WriteFile(service.AuthTokenFileLoc, file, 0644)
+	err = ioutil.WriteFile(service.AuthTokenFileLoc, file, filePerm)
 	if err != nil {
 		ctxLogger.WithError(err).Error("Error writing token to file")
 		return nil, err
