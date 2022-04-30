@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/360EntSecGroup-Skylar/excelize/v2 v2.2.0
 	github.com/aws/aws-sdk-go v1.44.4
-	github.com/gorilla/handlers v1.4.2
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.7.4
 	github.com/joho/godotenv v1.4.0
 	github.com/rs/cors v1.8.2
@@ -17,6 +17,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
