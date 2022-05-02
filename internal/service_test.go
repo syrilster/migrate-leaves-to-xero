@@ -125,14 +125,14 @@ func TestLeaveMigration(t *testing.T) {
 	})
 
 	t.Run("Failure - When invalid data in sheet", func(t *testing.T) {
-		expectedResp := "Invalid entry for Leave Date: 28/04/20. Valid Format DD/M/YYYY (Ex: 1/6/2020) "
+		expectedResp := "Invalid entry for Leave Date: 28/04/20. Valid Format DD/MM/YYYY (Ex: 01/06/2020)"
 		xlsLocation := getProjectRoot() + "/test/all_error.xlsx"
 		service := NewService(mockClient, xlsLocation, sesClient, "", "")
 
 		err := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, err)
 		assert.Equal(t, 4, len(err))
-		assert.Equal(t, true, contains(err, expectedResp))
+		assert.True(t, contains(err, expectedResp))
 	})
 
 	t.Run("Error when employee has insufficient leave balance for leave type Jury Duty and compassionate leave", func(t *testing.T) {
@@ -172,7 +172,7 @@ func TestLeaveMigration(t *testing.T) {
 		err := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, err)
 		assert.Equal(t, 2, len(err))
-		assert.Equal(t, true, contains(err, expectedResp))
+		assert.True(t, contains(err, expectedResp))
 	})
 
 	t.Run("Success - When Org having more than 100 employees", func(t *testing.T) {
@@ -221,7 +221,7 @@ func TestLeaveMigration(t *testing.T) {
 		service := NewService(mockClient, xlsLocation, sesClient, "", "")
 		err := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, err)
-		assert.Equal(t, true, contains(err, "Failed to fetch employees from Xero. Organization: DigIO. "))
+		assert.True(t, contains(err, "Failed to fetch employees from Xero. Organization: DigIO. "))
 	})
 
 	t.Run("Error when ORG is missing in Xero", func(t *testing.T) {
@@ -244,8 +244,8 @@ func TestLeaveMigration(t *testing.T) {
 		errRes := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, errRes)
 		assert.Equal(t, 14, len(errRes))
-		assert.Equal(t, true, contains(errRes, "Failed to get Organization details from Xero. Organization: Eliiza. "))
-		assert.Equal(t, true, contains(errRes, "Failed to get Organization details from Xero. Organization: CMD. "))
+		assert.True(t, contains(errRes, "Failed to get Organization details from Xero. Organization: Eliiza. "))
+		assert.True(t, contains(errRes, "Failed to get Organization details from Xero. Organization: CMD. "))
 	})
 
 	t.Run("Error when employee does not have the applied leave type configured in Xero", func(t *testing.T) {
@@ -291,7 +291,7 @@ func TestLeaveMigration(t *testing.T) {
 
 		errRes := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, errRes)
-		assert.Equal(t, true, contains(errRes, expectedError))
+		assert.True(t, contains(errRes, expectedError))
 	})
 
 	t.Run("Error when employee is missing in Xero", func(t *testing.T) {
@@ -309,8 +309,8 @@ func TestLeaveMigration(t *testing.T) {
 
 		errRes := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, errRes)
-		assert.Equal(t, 13, len(errRes))
-		assert.Equal(t, true, contains(errRes, expectedError))
+		assert.Equal(t, 12, len(errRes))
+		assert.True(t, contains(errRes, expectedError))
 	})
 
 	t.Run("Error when payroll calendar settings not found for employee", func(t *testing.T) {
@@ -358,7 +358,7 @@ func TestLeaveMigration(t *testing.T) {
 		errRes := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, errRes)
 		assert.Equal(t, 1, len(errRes))
-		assert.Equal(t, true, contains(errRes, expectedError))
+		assert.True(t, contains(errRes, expectedError))
 	})
 
 	t.Run("Error when failed to post leave request to xero", func(t *testing.T) {
@@ -438,7 +438,7 @@ func TestLeaveMigration(t *testing.T) {
 		errRes := service.MigrateLeaveKrowToXero(context.Background())
 		assert.NotNil(t, errRes)
 		assert.Equal(t, 1, len(errRes))
-		assert.Equal(t, true, contains(errRes, expectedError))
+		assert.True(t, contains(errRes, expectedError))
 	})
 }
 
