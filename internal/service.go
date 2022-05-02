@@ -433,16 +433,23 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 	ctxLogger.Info("SheetName: ", f.GetSheetName(f.GetActiveSheetIndex()))
 	rows, err := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex()))
 	for index, row := range rows {
+		// This is to skip the header row of the excel sheet
 		if index == 0 {
 			continue
 		}
-		leaveDate, err := time.Parse("2/1/2006", row[1])
-		if err != nil {
-			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/M/YYYY (Ex: 1/6/2020) ", row[1])
-			ctxLogger.WithError(err).Error(errStr)
+
+		rawDate := row[1]
+		ld, err := strconv.ParseFloat(rawDate, 64)
+		leaveDate, err := excelize.ExcelDateToTime(ld, false)
+		if err != nil || strings.Contains(rawDate, "/") {
+			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020)", rawDate)
+			if err != nil {
+				ctxLogger.WithError(err).Error(errStr)
+			}
 			errResult = append(errResult, errStr.Error())
 			continue
 		}
+
 		hours, err := strconv.ParseFloat(row[2], 64)
 		if err != nil {
 			errStr := fmt.Errorf("Invalid entry for Leave Hours: %v ", row[2])
