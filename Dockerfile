@@ -1,4 +1,4 @@
-FROM golang:1.13-alpine3.12 AS base
+FROM golang:1.18.1-alpine3.15 AS base
 
 #Set necessary env vars for the image
 ENV GO111MODULE=on \
