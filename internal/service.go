@@ -14,10 +14,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/model"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/xero"
+	"github.com/xuri/excelize/v2"
 )
 
 var minRateLimit = 60
@@ -431,7 +431,7 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 	}
 
 	ctxLogger.Info("SheetName: ", f.GetSheetName(f.GetActiveSheetIndex()))
-	rows, err := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex()))
+	rows, err := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex()), excelize.Options{RawCellValue: true})
 	for index, row := range rows {
 		// This is to skip the header row of the excel sheet
 		if index == 0 {
@@ -441,7 +441,7 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 		rawDate := row[1]
 		ld, err := strconv.ParseFloat(rawDate, 64)
 		leaveDate, err := excelize.ExcelDateToTime(ld, false)
-		if err != nil || strings.Contains(rawDate, "/") {
+		if err != nil || dateContainsSpecialChars(rawDate) {
 			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020)", rawDate)
 			if err != nil {
 				ctxLogger.WithError(err).Error(errStr)
@@ -663,4 +663,11 @@ func containsString(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+// dateContainsSpecialChars is a func to check if the leave date contains any special chars
+// The raw date from excel is supposed to be of the format 43949 for date 28/04/2020. If the
+// date is not in this format it will be in either 28/04/2020 or 28-04-2020 which is then considered invalid
+func dateContainsSpecialChars(date string) bool {
+	return strings.Contains(date, "/") || strings.Contains(date, "-")
 }
