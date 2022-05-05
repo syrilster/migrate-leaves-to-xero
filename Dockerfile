@@ -16,6 +16,8 @@ RUN go mod download
 # Copy the code into the container
 COPY . .
 
+RUN apk add git
+
 # Build the application
 RUN go build -o main .
 
