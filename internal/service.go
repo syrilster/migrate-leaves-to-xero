@@ -54,6 +54,7 @@ type EmpLeaveRequest struct {
 	leaveDate         time.Time
 	originalLeaveType string
 	orgName           string
+	description       string
 }
 
 func NewService(c xero.ClientInterface, xlsLocation string, ec *ses.SES, emailTo string, emailFrom string) *Service {
@@ -115,31 +116,29 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 			time.Sleep(60 * time.Second)
 		}
 
-		orgName := leaveReq.OrgName
-		empName := leaveReq.EmpName
-		if _, ok := connectionsMap[orgName]; !ok {
-			errStr := fmt.Errorf("Failed to get Organization details from Xero. Organization: %v. ", orgName)
+		if _, ok := connectionsMap[leaveReq.OrgName]; !ok {
+			errStr := fmt.Errorf("Failed to get Organization details from Xero. Organization: %v. ", leaveReq.OrgName)
 			ctxLogger.Infof(errStr.Error())
 			errStrings = append(errStrings, errStr)
 			continue
 		}
 
-		tenantID := connectionsMap[orgName]
+		tenantID := connectionsMap[leaveReq.OrgName]
 		//Use employees available in the local cache(Map) rather than loading for each leave request. This is to avoid xero rate limit 429 error
-		if !containsString(orgEmpCacheList, orgName) {
+		if !containsString(orgEmpCacheList, leaveReq.OrgName) {
 			var errs []string
-			xeroEmployeesMap, errs = service.populateEmployeesMap(ctx, xeroEmployeesMap, tenantID, orgName, 1)
+			xeroEmployeesMap, errs = service.populateEmployeesMap(ctx, xeroEmployeesMap, tenantID, leaveReq.OrgName, 1)
 			if errs != nil {
 				errResult = errs
 				continue
 			}
-			orgEmpCacheList = append(orgEmpCacheList, orgName)
+			orgEmpCacheList = append(orgEmpCacheList, leaveReq.OrgName)
 		}
 
 		if !containsString(payrollCalCacheList, tenantID) {
 			payCalendarResp, err := service.client.GetPayrollCalendars(ctx, tenantID)
 			if err != nil {
-				errStr := fmt.Errorf("Failed to fetch employee payroll calendar settings from Xero. Organization: %v. Please reupload entry for this ORG. ", orgName)
+				errStr := fmt.Errorf("Failed to fetch employee payroll calendar settings from Xero. Organization: %v. Please reupload entry for this ORG. ", leaveReq.OrgName)
 				ctxLogger.Infof(err.Error(), err)
 				errStrings = append(errStrings, errStr)
 				continue
@@ -154,7 +153,7 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 			payrollCalCacheList = append(payrollCalCacheList, tenantID)
 		}
 
-		errStr := service.processLeaveRequestByEmp(ctx, xeroEmployeesMap, empName, orgName, leaveReq, tenantID, payrollCalendarMap, resultChan, &wg)
+		errStr := service.processLeaveRequestByEmp(ctx, xeroEmployeesMap, leaveReq, tenantID, payrollCalendarMap, resultChan, &wg)
 		if errStr != nil {
 			if !containsError(errStrings, errStr.Error()) {
 				errStrings = append(errStrings, errStr)
@@ -228,30 +227,30 @@ func (service Service) sendStatusReport(ctx context.Context, errResult []string,
 }
 
 func (service Service) processLeaveRequestByEmp(ctx context.Context, xeroEmployeesMap map[string]xero.Employee,
-	empName string, orgName string, leaveReq model.KrowLeaveRequest, tenantID string, payrollCalendarMap map[string]string,
+	leaveReq model.KrowLeaveRequest, tenantID string, payrollCalendarMap map[string]string,
 	resChan chan string, wg *sync.WaitGroup) error {
 	ctxLogger := log.WithContext(ctx)
 
-	if _, ok := xeroEmployeesMap[empName]; !ok {
-		errStr := fmt.Errorf("Employee not found in Xero. Employee: %v. Organization: %v  ", empName, orgName)
+	if _, ok := xeroEmployeesMap[leaveReq.EmpName]; !ok {
+		errStr := fmt.Errorf("Employee not found in Xero. Employee: %v. Organization: %v  ", leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error())
 		return errStr
 	}
-	empID := xeroEmployeesMap[empName].EmployeeID
-	payCalendarID := xeroEmployeesMap[empName].PayrollCalendarID
+	empID := xeroEmployeesMap[leaveReq.EmpName].EmployeeID
+	payCalendarID := xeroEmployeesMap[leaveReq.EmpName].PayrollCalendarID
 	if _, ok := payrollCalendarMap[payCalendarID]; !ok {
-		errStr := fmt.Errorf("Failed to fetch employee payroll calendar settings from Xero. Employee: %v. Organization: %v ", empName, orgName)
+		errStr := fmt.Errorf("Failed to fetch employee payroll calendar settings from Xero. Employee: %v. Organization: %v ", leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error())
 		return errStr
 	}
 	paymentDate := payrollCalendarMap[payCalendarID]
 
-	err := service.reconcileLeaveRequestAndApply(ctx, empID, empName, orgName, tenantID, leaveReq, paymentDate, resChan, wg)
+	err := service.reconcileLeaveRequestAndApply(ctx, empID, tenantID, leaveReq, paymentDate, resChan, wg)
 	return err
 }
 
-func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID string, empName string, orgName string,
-	tenantID string, leaveReq model.KrowLeaveRequest, paymentDate string, resChan chan string, wg *sync.WaitGroup) error {
+func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID string, tenantID string,
+	leaveReq model.KrowLeaveRequest, paymentDate string, resChan chan string, wg *sync.WaitGroup) error {
 	var leaveBalanceMap = make(map[string]xero.LeaveBalance)
 	var leaveTypeID string
 	var leaveStartDate string
@@ -264,7 +263,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	var negativeLeaveLimit float64
 
 	ctxLogger := log.WithContext(ctx)
-	ctxLogger.Infof("Calculating leaves to be applied for Employee %v", empName)
+	ctxLogger.Infof("Calculating leaves to be applied for Employee %v", leaveReq.EmpName)
 
 	skipUnpaidLeave = strings.EqualFold(leaveReq.LeaveType, compassionateLeave) || strings.EqualFold(leaveReq.LeaveType, juryDutyLeave)
 
@@ -272,7 +271,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	time.Sleep(200 * time.Millisecond)
 	leaveBalance, err := service.client.EmployeeLeaveBalance(ctx, tenantID, empID)
 	if err != nil {
-		errStr := fmt.Errorf("Failed to fetch employee leave balance from Xero. Employee: %v. Organization: %v ", empName, orgName)
+		errStr := fmt.Errorf("Failed to fetch employee leave balance from Xero. Employee: %v. Organization: %v ", leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error(), err)
 		return errStr
 	}
@@ -286,7 +285,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	}
 
 	if _, ok := leaveBalanceMap[leaveReq.LeaveType]; !ok {
-		errStr := fmt.Errorf("Leave type %v not found/configured in Xero for Employee: %v. Organization: %v ", leaveReq.LeaveType, empName, orgName)
+		errStr := fmt.Errorf("Leave type %v not found/configured in Xero for Employee: %v. Organization: %v ", leaveReq.LeaveType, leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error())
 		errorsStr = append(errorsStr, errStr.Error())
 		return errStr
@@ -305,7 +304,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 		} else {
 			negativeLeaveLimit = annualLeaveNegativeLimit
 		}
-		//To handle a edge case if leave is for ex: -44 then reset to zero
+		//To handle an edge case if leave is for ex: -44 then reset to zero
 		if availableLeaveBalUnit < negativeLeaveLimit {
 			availableLeaveBalUnit = 0
 		} else if availableLeaveBalUnit > 0 {
@@ -321,7 +320,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 			paidLeaveUnits = availableLeaveBalUnit
 			unpaidLeaveUnits += leaveReqUnit - availableLeaveBalUnit
 		} else {
-			//Employees has negative or zero leave balance and hence unpaid leave
+			//Employee has negative or zero leave balance and hence unpaid leave
 			paidLeaveUnits = 0
 			unpaidLeaveUnits += leaveReqUnit
 		}
@@ -333,7 +332,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 		wg.Add(1)
 		paidLeaveReq := EmpLeaveRequest{
 			empID:             empID,
-			empName:           empName,
+			empName:           leaveReq.EmpName,
 			tenantID:          tenantID,
 			leaveTypeID:       leaveTypeID,
 			leaveUnits:        paidLeaveUnits,
@@ -343,7 +342,8 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 			leaveType:         leaveReq.LeaveType,
 			leaveDate:         leaveReq.LeaveDate,
 			originalLeaveType: leaveReq.LeaveType,
-			orgName:           orgName,
+			orgName:           leaveReq.OrgName,
+			description:       leaveReq.Description,
 		}
 		service.applyLeave(ctx, paidLeaveReq, resChan, wg)
 	}
@@ -352,7 +352,7 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 		wg.Add(1)
 		unPaidLeaveReq := EmpLeaveRequest{
 			empID:             empID,
-			empName:           empName,
+			empName:           leaveReq.EmpName,
 			tenantID:          tenantID,
 			leaveTypeID:       unPaidLeaveTypeID,
 			leaveUnits:        unpaidLeaveUnits,
@@ -362,13 +362,14 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 			leaveType:         unPaidLeave,
 			leaveDate:         leaveReq.LeaveDate,
 			originalLeaveType: leaveReq.LeaveType,
-			orgName:           orgName,
+			orgName:           leaveReq.OrgName,
+			description:       leaveReq.Description,
 		}
 		service.applyLeave(ctx, unPaidLeaveReq, resChan, wg)
 	}
 
 	if unpaidLeaveUnits > 0 && skipUnpaidLeave {
-		errStr := fmt.Errorf("Employee: %v has insufficient Leave balance for Leave type %v requested for %v hours ", empName, leaveReq.LeaveType, unpaidLeaveUnits)
+		errStr := fmt.Errorf("Employee: %v has insufficient Leave balance for Leave type %v requested for %v hours ", leaveReq.EmpName, leaveReq.LeaveType, unpaidLeaveUnits)
 		errorsStr = append(errorsStr, errStr.Error())
 	}
 
@@ -386,12 +387,16 @@ func (service Service) applyLeave(ctx context.Context, leaveReq EmpLeaveRequest,
 	leaveDate := leaveReq.leaveDate.Format("2/1/2006")
 	leavePeriods[0] = leavePeriod
 
+	if leaveReq.description == "" {
+		leaveReq.description = leaveReq.leaveType + " " + leaveReq.leaveDate.Format("02/01")
+	}
+
 	leaveApplication := xero.LeaveApplicationRequest{
 		EmployeeID:   leaveReq.empID,
 		LeaveTypeID:  leaveReq.leaveTypeID,
 		StartDate:    leaveReq.leaveStartDate,
 		EndDate:      leaveReq.leaveEndDate,
-		Title:        leaveReq.leaveType + " " + leaveReq.leaveDate.Format("02/01"),
+		Title:        leaveReq.description,
 		LeavePeriods: leavePeriods,
 	}
 	go service.applyLeaveRequestToXero(ctx, leaveReq.tenantID, leaveReq.leaveType, leaveReq.originalLeaveType,
@@ -469,6 +474,11 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 		leaveType = r.Replace(leaveType)
 		empName := row[0]
 		orgName := row[5]
+		desc := ""
+		// this means that there is a description column
+		if len(row) == 7 {
+			desc = row[6]
+		}
 		leaveReq := model.KrowLeaveRequest{
 			LeaveDate:      leaveDate,
 			LeaveDateEpoch: leaveDate.UnixNano() / 1000000,
@@ -476,6 +486,7 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 			LeaveType:      leaveType,
 			OrgName:        orgName,
 			EmpName:        empName,
+			Description:    desc,
 		}
 		leaveRequests = append(leaveRequests, leaveReq)
 	}

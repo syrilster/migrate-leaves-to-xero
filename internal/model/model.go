@@ -30,4 +30,5 @@ type KrowLeaveRequest struct {
 	LeaveType      string
 	OrgName        string
 	EmpName        string
+	Description    string
 }
