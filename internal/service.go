@@ -136,7 +136,15 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 		}
 
 		if !containsString(payrollCalCacheList, tenantID) {
-			payCalendarResp, err := service.client.GetPayrollCalendars(ctx, tenantID)
+			req, err := service.client.NewPayrollRequest(ctx, tenantID)
+			if err != nil {
+				errStr := fmt.Errorf("failed to build NewPayrollRequest. Cause %v", err.Error())
+				ctxLogger.Infof(err.Error(), err)
+				errStrings = append(errStrings, errStr)
+				continue
+			}
+
+			payCalendarResp, err := service.client.GetPayrollCalendars(ctx, req)
 			if err != nil {
 				errStr := fmt.Errorf("Failed to fetch employee payroll calendar settings from Xero. Organization: %v. Please reupload entry for this ORG. ", leaveReq.OrgName)
 				ctxLogger.Infof(err.Error(), err)

@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/stretchr/testify/require"
+	"net/http"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -108,12 +110,16 @@ func TestLeaveMigration(t *testing.T) {
 	}
 
 	leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees, RateLimitRemaining: 60}
+	r, err := http.NewRequest(http.MethodGet, xero.BuildXeroPayrollCalendarEndpoint("https://dummy.xero.com"), nil)
+	require.NoError(t, err)
+	req := &xero.ReusableRequest{Request: r}
 	mockClient := new(MockXeroClient)
 	sesClient := ses.New(session.New())
 	mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 	mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(empResp, nil)
-	mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(payRollCalendarResp, nil)
 	mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
+	mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+	mockClient.On("NewPayrollRequest", context.Background(), digIOTenantID).Return(req, nil)
 	mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
 	t.Run("Success", func(t *testing.T) {
@@ -478,7 +484,12 @@ func (m *MockXeroClient) EmployeeLeaveApplication(ctx context.Context, tenantID 
 	return args.Error(0)
 }
 
-func (m *MockXeroClient) GetPayrollCalendars(ctx context.Context, tenantID string) (*xero.PayrollCalendarResponse, error) {
-	args := m.Called(ctx, tenantID)
+func (m *MockXeroClient) GetPayrollCalendars(ctx context.Context, req *xero.ReusableRequest) (*xero.PayrollCalendarResponse, error) {
+	args := m.Called(ctx, req)
 	return args.Get(0).(*xero.PayrollCalendarResponse), args.Error(1)
+}
+
+func (m *MockXeroClient) NewPayrollRequest(ctx context.Context, tenantID string) (*xero.ReusableRequest, error) {
+	args := m.Called(ctx, tenantID)
+	return args.Get(0).(*xero.ReusableRequest), args.Error(1)
 }

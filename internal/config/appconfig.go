@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ses"
@@ -84,16 +85,19 @@ func (cfg *ApplicationConfig) AuthTokenFileLocation() string {
 }
 
 //NewApplicationConfig loads config values from environment and initialises config
-func NewApplicationConfig() *ApplicationConfig {
+func NewApplicationConfig() (*ApplicationConfig, error) {
 	envValues := NewEnvironmentConfig()
-	httpCommand := NewHTTPCommand()
-	xeroClient := xero.NewClient(envValues.XeroEndpoint, httpCommand, envValues.AuthTokenFileLocation)
-	emailClient := ses.New(session.New(), aws.NewConfig().WithRegion("ap-southeast-2"))
+	xeroClient := xero.New(envValues.XeroEndpoint, envValues.AuthTokenFileLocation)
+	s, err := session.NewSession(aws.NewConfig().WithRegion("ap-southeast-2"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ses session: %v", err)
+	}
+	emailClient := ses.New(s)
 	return &ApplicationConfig{
 		envValues:   envValues,
 		xeroClient:  xeroClient,
 		emailClient: emailClient,
-	}
+	}, nil
 }
 
 // NewHTTPCommand returns the HTTP client

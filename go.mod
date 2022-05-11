@@ -18,6 +18,8 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/googleapis/gax-go/v2 v2.3.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -30,6 +32,10 @@ require (
 	golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3 // indirect
 	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	google.golang.org/api v0.74.0 // indirect
+	google.golang.org/genproto v0.0.0-20220407144326-9054f6ed7bac // indirect
+	google.golang.org/grpc v1.45.0 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
