@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 export GO111MODULE=on
 export GOFLAGS=-mod=vendor
 export SERVER_PORT=8080
