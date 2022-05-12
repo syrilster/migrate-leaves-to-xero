@@ -21,7 +21,7 @@ push:
 	docker push ${APP}
 
 test:
-	set -o pipefail; go test -v ./... 2>&1 | tee test-output.txt
+	set -euxo pipefail; go test -v ./... 2>&1 | tee test-output.txt
 
 sonar:
 	mkdir -p gen
