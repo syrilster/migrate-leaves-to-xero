@@ -106,7 +106,6 @@ func TestLeaveMigration(t *testing.T) {
 				PaymentDate:       "/Date(632102400000+0000)/",
 			},
 		},
-		RateLimitRemaining: 60,
 	}
 
 	leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees, RateLimitRemaining: 60}
@@ -403,7 +402,6 @@ func TestLeaveMigration(t *testing.T) {
 					PaymentDate:       "/Date(632102400000+0000)/",
 				},
 			},
-			RateLimitRemaining: 60,
 		}
 
 		mockClient := new(MockXeroClient)

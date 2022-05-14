@@ -152,7 +152,6 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 				continue
 			}
 
-			minRateLimit = payCalendarResp.RateLimitRemaining
 			//Populate the payroll settings to a map
 			for _, p := range payCalendarResp.PayrollCalendars {
 				payrollCalendarMap[p.PayrollCalendarID] = p.PaymentDate

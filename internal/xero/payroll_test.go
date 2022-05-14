@@ -104,7 +104,7 @@ func TestClient_GetPayrollCalendars(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusTooManyRequests)
 			},
-			err: errors.New("failed, retry limit expired failed to call GetPayrollCalendars with cause 429 rate limit exceeded"),
+			err: errors.New("failed, retry limit expired:failed to call GetPayrollCalendars with cause 429 rate limit exceeded"),
 		},
 	}
 

@@ -46,18 +46,17 @@ func (c *client) GetPayrollCalendars(ctx context.Context, req *ReusableRequest) 
 	for {
 		res, err := c.getPayrollCalendars(ctx, req.Request)
 		if err != nil {
-			if errors.Is(err, exceededRateLimit) {
-				d = backOff.Pause()
-				fmt.Println("PAUSE DURATION ---->", d)
-			}
-
 			if errors.Is(err, unauthorized) {
 				return nil, err
 			}
 
+			if errors.Is(err, exceededRateLimit) {
+				d = backOff.Pause()
+			}
+
 			if !errors.Is(err, nonRetryable) {
 				if innerErr := gax.Sleep(retryCtx, d); innerErr != nil {
-					return nil, errors.New(fmt.Sprint("failed, retry limit expired ", err))
+					return nil, errors.New(fmt.Sprint("failed, retry limit expired:", err))
 				}
 				continue
 			}

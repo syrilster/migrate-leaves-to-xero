@@ -51,8 +51,7 @@ type LeavePeriod struct {
 }
 
 type PayrollCalendarResponse struct {
-	PayrollCalendars   []PayrollCalendar `json:"PayrollCalendars"`
-	RateLimitRemaining int
+	PayrollCalendars []PayrollCalendar `json:"PayrollCalendars"`
 }
 
 type PayrollCalendar struct {
