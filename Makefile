@@ -13,10 +13,10 @@ clean:
 	rm -f ${APP}
 
 build: clean
-	go build -o ${APP}
+	set -euxo pipefail; go build -o ${APP}
 
 container: build
-	docker build . -t ${APP}
+	set -euxo pipefail; docker build . -t ${APP}
 
 push:
 	docker push ${APP}
@@ -26,11 +26,13 @@ test:
 
 sonar:
 	mkdir -p gen
+	set -euxo pipefail;
 	go test `go list ./... | grep -vE "./test"` \
 	   -race -covermode=atomic -json \
 	   -coverprofile=$(COVER_FILE)
 
 test-coverage:
+	set -euxo pipefail;
 	go test -short -coverprofile cover.out -covermode=atomic ${PKG_LIST}
 	cat cover.out >> test-output.txt
 
