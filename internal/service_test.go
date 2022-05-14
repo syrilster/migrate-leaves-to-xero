@@ -170,7 +170,8 @@ func TestLeaveMigration(t *testing.T) {
 		sesClient := ses.New(session.New())
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(empResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), digIOTenantID).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
@@ -196,7 +197,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(response, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "2").Return(empResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), digIOTenantID).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
@@ -220,7 +222,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(response, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "2").Return(empResp, errors.New("error"))
-		mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), digIOTenantID).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
@@ -241,7 +244,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient := new(MockXeroClient)
 		mockClient.On("GetConnections", context.Background()).Return(cResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(empResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), digIOTenantID).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 		xlsLocation := getProjectRoot() + "/test/all_org.xlsx"
@@ -289,7 +293,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient := new(MockXeroClient)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(empResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), digIOTenantID).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 		xlsLocation := getProjectRoot() + "/test/digio_leave.xlsx"
@@ -306,7 +311,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient := new(MockXeroClient)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), mock.Anything, "1").Return(empResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), mock.Anything).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), mock.Anything).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), mock.Anything, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), mock.Anything, mock.Anything).Return(nil)
 
@@ -354,7 +360,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient := new(MockXeroClient)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), mock.Anything, "1").Return(empResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), mock.Anything).Return(payRollCalendarResp, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), mock.Anything).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), mock.Anything, empID).Return(leaveBalResp, nil)
 		mockClient.On("EmployeeLeaveApplication", context.Background(), mock.Anything, mock.Anything).Return(nil)
 
@@ -368,7 +375,7 @@ func TestLeaveMigration(t *testing.T) {
 	})
 
 	t.Run("Error when failed to post leave request to xero", func(t *testing.T) {
-		expectedError := "Error: Failed to post Leave application to xero for Employee: Stina Anderson Organization: CMD "
+		expectedError := "Failed to post Leave application to xero for Employee: Syril Sadasivan Organization: DigIO"
 
 		digIOEmpResp := &xero.EmpResponse{
 			Status: "Active",
@@ -387,26 +394,8 @@ func TestLeaveMigration(t *testing.T) {
 			},
 			RateLimitRemaining: 60,
 		}
-		cmdEmpResp := &xero.EmpResponse{
-			Status: "Active",
-			Employees: []xero.Employee{
-				{
-					EmployeeID:        "45678974111",
-					FirstName:         "Stina",
-					LastName:          "Anderson",
-					Status:            "Active",
-					PayrollCalendarID: "789845651232",
-					LeaveBalance: []xero.LeaveBalance{
-						annualLeave,
-						personalLeave,
-					},
-				},
-			},
-			RateLimitRemaining: 60,
-		}
 
 		digIOLeaveBal := &xero.LeaveBalanceResponse{Employees: digIOEmpResp.Employees, RateLimitRemaining: 60}
-		cmdLeaveBal := &xero.LeaveBalanceResponse{Employees: cmdEmpResp.Employees, RateLimitRemaining: 60}
 		digIOPayrollCal := &xero.PayrollCalendarResponse{
 			PayrollCalendars: []xero.PayrollCalendar{
 				{
@@ -417,28 +406,15 @@ func TestLeaveMigration(t *testing.T) {
 			RateLimitRemaining: 60,
 		}
 
-		cmdPayrollCal := &xero.PayrollCalendarResponse{
-			PayrollCalendars: []xero.PayrollCalendar{
-				{
-					PayrollCalendarID: "789845651232",
-					PaymentDate:       "/Date(632102400000+0000)/",
-				},
-			},
-			RateLimitRemaining: 60,
-		}
-
 		mockClient := new(MockXeroClient)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(digIOEmpResp, nil)
-		mockClient.On("GetEmployees", context.Background(), cmdTenantID, "1").Return(cmdEmpResp, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), digIOTenantID).Return(digIOPayrollCal, nil)
-		mockClient.On("GetPayrollCalendars", context.Background(), cmdTenantID).Return(cmdPayrollCal, nil)
+		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(digIOPayrollCal, nil)
+		mockClient.On("NewPayrollRequest", context.Background(), mock.Anything).Return(req, nil)
 		mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(digIOLeaveBal, nil)
-		mockClient.On("EmployeeLeaveBalance", context.Background(), cmdTenantID, "45678974111").Return(cmdLeaveBal, nil)
-		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
-		mockClient.On("EmployeeLeaveApplication", context.Background(), cmdTenantID, mock.Anything).Return(errors.New("something went wrong"))
+		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(errors.New("something went wrong"))
 
-		xlsLocation := getProjectRoot() + "/test/cmd_leave.xlsx"
+		xlsLocation := getProjectRoot() + "/test/failed_leave.xlsx"
 		service := NewService(mockClient, xlsLocation, sesClient, "", "")
 
 		errRes := service.MigrateLeaveKrowToXero(context.Background())
