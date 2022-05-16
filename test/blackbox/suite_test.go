@@ -13,11 +13,11 @@ import (
 var (
 	connectionResp = `[
     {
-        "id": "909f5356-c509-4dc2-bee2-f67ef9703bc8",
-        "authEventId": "228dd1d3-59e1-4d89-88e7-efca52fcbbc1",
+        "id": "c509-4dc2-bee2",
+        "authEventId": "228dd1d3-59e1-4d89-88e7",
         "tenantId": "2e9e4e41-feab-4bb2-9fc1-ef1c61fd7e9b",
         "tenantType": "ORGANISATION",
-        "tenantName": "Kasna",
+        "tenantName": "DigIO",
         "createdDateUtc": "2022-04-14T04:05:18.2318600",
         "updatedDateUtc": "2022-04-14T04:05:18.2331860"
     },
