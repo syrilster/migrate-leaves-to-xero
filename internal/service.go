@@ -474,6 +474,8 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 		leaveType = r.Replace(leaveType)
 		empName := row[0]
 		orgName := row[5]
+		o := strings.NewReplacer("Cuusoo", "Cuusoo Pty Ltd")
+		org := o.Replace(orgName)
 		desc := ""
 		// this means that there is a description column
 		if len(row) == 7 {
@@ -484,7 +486,7 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 			LeaveDateEpoch: leaveDate.UnixNano() / 1000000,
 			Hours:          hours,
 			LeaveType:      leaveType,
-			OrgName:        orgName,
+			OrgName:        org,
 			EmpName:        empName,
 			Description:    desc,
 		}
