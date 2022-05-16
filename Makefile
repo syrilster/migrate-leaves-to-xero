@@ -31,6 +31,12 @@ sonar:
 	   -race -covermode=atomic -json \
 	   -coverprofile=$(COVER_FILE)
 
+.PHONY: bbtest
+bbtest:
+	@echo "Running blackbox tests"
+	(docker-compose up --force-recreate --always-recreate-deps --abort-on-container-exit --build blackbox) || { docker-compose logs -t; exit 1; }
+	docker-compose down
+
 test-coverage:
 	set -euxo pipefail;
 	go test -short -coverprofile cover.out -covermode=atomic ${PKG_LIST}

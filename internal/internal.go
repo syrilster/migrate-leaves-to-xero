@@ -13,7 +13,7 @@ import (
 //StatusRoute health check route
 func StatusRoute() (route config.Route) {
 	route = config.Route{
-		Path:    "/status",
+		Path:    "/health",
 		Method:  http.MethodGet,
 		Handler: middlewares.RuntimeHealthCheck(),
 	}

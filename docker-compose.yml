@@ -28,3 +28,41 @@ services:
      volumes:
        - '.:/app'
        - '/tmp:/tmp'
+
+  blackbox-api:
+    container_name: leave-migration-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    volumes:
+      - '.:/app'
+      - './test:/test'
+      - '/tmp:/tmp'
+
+  blackbox:
+    depends_on:
+      - blackbox-api
+    build:
+      context: .
+      dockerfile: Dockerfile.blackbox
+    env_file:
+      - test/blackbox/.env
+    links:
+      - blackbox-api
+
+
+  api-health-check:
+    image: curlimages/curl
+    healthcheck:
+      test: |
+        curl --fail http://localhost:8000/health
+      timeout: 30s
+      interval: 1s
+      retries: 5
+    entrypoint: |
+      tail -f /dev/null
