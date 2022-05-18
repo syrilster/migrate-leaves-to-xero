@@ -1,13 +1,23 @@
 package blackbox
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/net/http2"
+)
+
+const (
+	defaultHost = "localhost:8000"
 )
 
 var (
@@ -32,12 +42,27 @@ func TestApiSuite(t *testing.T) {
 type apiSuite struct {
 	suite.Suite
 
-	ctx context.Context
+	ctx        context.Context
+	httpClient *http.Client
+	host       string
+}
+
+type APIResponse struct {
+	res []string
 }
 
 func (a *apiSuite) SetupSuite() {
 	// block all HTTP requests
 	httpmock.Activate()
+
+	a.httpClient = &http.Client{
+		Transport: &http2.Transport{
+			AllowHTTP: true,
+		},
+		Timeout: 30 * time.Second,
+	}
+
+	a.host = defaultHost
 }
 
 func (a *apiSuite) TearDownTest() {
@@ -53,4 +78,38 @@ func (a *apiSuite) Test_BasicSuccess() {
 	fmt.Println("INSIDE BB TEST SUITE ============================================")
 	httpmock.RegisterResponder(http.MethodGet, "https://api.test.xero.com/connections",
 		httpmock.NewStringResponder(http.StatusOK, connectionResp))
+
+	url := fmt.Sprintf("http://%s/migrateLeaves", a.host)
+	res := &APIResponse{}
+	code, err := a.doHTTPRequest(url, http.MethodPost, res, bytes.NewBuffer([]byte{}))
+	a.Require().NoError(err)
+	a.Require().Equal(http.StatusOK, code)
+}
+
+func (a *apiSuite) doHTTPRequest(url string, httpMethod string, response *APIResponse, body io.Reader) (int, error) {
+	req, err := http.NewRequest(httpMethod, url, body)
+
+	req.Header.Add("accept", "application/json")
+
+	r, err := a.httpClient.Do(req)
+	if err != nil {
+		return 0, err
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return r.StatusCode, nil
+	}
+
+	defer func() {
+		a.Require().NoError(r.Body.Close())
+	}()
+
+	b, err := ioutil.ReadAll(r.Body)
+	a.Require().NoError(err)
+
+	var resp []string
+	a.Require().NoError(json.Unmarshal(b, &resp))
+
+	response.res = resp
+	return r.StatusCode, nil
 }
