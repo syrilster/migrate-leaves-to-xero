@@ -1,0 +1,43 @@
+{
+  "port": 8090,
+  "protocol": "http",
+  "recordRequests": true,
+  "stubs": [
+    {
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/connections"
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "body": "[\n  {\n    \"id\": \"c509-4dc2-bee2\",\n    \"authEventId\": \"228dd1d3-59e1-4d89-88e7\",\n    \"tenantId\": \"2e9e4e41-feab-4bb2-9fc1-ef1c61fd7e9b\",\n    \"tenantType\": \"ORGANISATION\",\n    \"tenantName\": \"DigIO\",\n    \"createdDateUtc\": \"2022-04-14T04:05:18.2318600\",\n    \"updatedDateUtc\": \"2022-04-14T04:05:18.2331860\"\n  }\n]"
+          }
+        }
+      ]
+    },
+    {
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/payroll.xro/1.0/Employees"
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "body": "{}"
+          }
+        }
+      ]
+    }
+  ]
+}

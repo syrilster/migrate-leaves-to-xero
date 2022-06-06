@@ -24,6 +24,10 @@ FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
 
+## Add the wait script to the image
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
+
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /src /src
 COPY --from=builder /src/dist/blackbox /bin/blackbox

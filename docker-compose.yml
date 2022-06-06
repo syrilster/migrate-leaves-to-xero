@@ -45,24 +45,31 @@ services:
     volumes:
       - '.:/app'
       - '/tmp:/tmp'
-#    healthcheck:
-#      test: [ "CMD", "curl", "-f", "http://blackboxapi:8000/health" ]
-#      timeout: 10s
-#      interval: 1s
-#      retries: 5
 
   blackbox:
     depends_on:
       - blackboxapi
+      - mountebank
     build:
       context: .
       dockerfile: Dockerfile.blackbox
     env_file:
       - test/blackbox/.env
     environment:
-      - SERVER_URL=blackboxapi:8080
+      WAIT_HOSTS: blackboxapi:8000, mountebank:8090
     volumes:
       - '.:/app'
+    command: sh -c "/wait && /bin/blackbox"
     links:
       - blackboxapi
+      - mountebank
 
+  mountebank:
+    container_name: mountebank
+    image: jkris/mountebank:latest
+    volumes:
+      - ./test/stubs:/stubs
+    ports:
+      - 2525:2525
+      - 8090:8090
+    command: --configfile /stubs/imposters.json --allowInjection
