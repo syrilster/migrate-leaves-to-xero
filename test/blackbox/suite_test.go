@@ -3,11 +3,15 @@ package blackbox
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
+	"net"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -17,7 +21,7 @@ import (
 )
 
 const (
-	defaultHost = "localhost:8000"
+	defaultHost = "blackboxapi:8000"
 )
 
 var (
@@ -58,6 +62,9 @@ func (a *apiSuite) SetupSuite() {
 	a.httpClient = &http.Client{
 		Transport: &http2.Transport{
 			AllowHTTP: true,
+			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+				return net.Dial(network, addr)
+			},
 		},
 		Timeout: 30 * time.Second,
 	}
@@ -76,11 +83,12 @@ func (a *apiSuite) TearDownSuite() {
 
 func (a *apiSuite) Test_BasicSuccess() {
 	fmt.Println("INSIDE BB TEST SUITE ============================================")
-	httpmock.RegisterResponder(http.MethodGet, "https://api.test.xero.com/connections",
+	httpmock.RegisterResponder(http.MethodGet, "https://api.test.xero.com",
 		httpmock.NewStringResponder(http.StatusOK, connectionResp))
 
-	url := fmt.Sprintf("http://%s/migrateLeaves", a.host)
+	url := fmt.Sprintf("http://%s/health", a.host)
 	res := &APIResponse{}
+	//b := a.newFileUploadRequest("file", "app/test/blackbox/digio_leave.xlsx")
 	code, err := a.doHTTPRequest(url, http.MethodPost, res, bytes.NewBuffer([]byte{}))
 	a.Require().NoError(err)
 	a.Require().Equal(http.StatusOK, code)
@@ -112,4 +120,30 @@ func (a *apiSuite) doHTTPRequest(url string, httpMethod string, response *APIRes
 
 	response.res = resp
 	return r.StatusCode, nil
+}
+
+// Creates a new file upload http request
+func (a *apiSuite) newFileUploadRequest(paramName, path string) *bytes.Buffer {
+	file, err := os.Open(path)
+	a.Require().NoError(err)
+
+	defer func() {
+		a.Require().NoError(file.Close())
+	}()
+
+	fi, err := file.Stat()
+	a.Require().NoError(err)
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile(paramName, fi.Name())
+	a.Require().NoError(err)
+
+	_, err = io.Copy(part, file)
+	a.Require().NoError(err)
+
+	err = writer.Close()
+	a.Require().NoError(err)
+
+	return body
 }
