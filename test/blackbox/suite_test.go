@@ -57,7 +57,7 @@ type APIResponse struct {
 
 func (a *apiSuite) SetupSuite() {
 	// block all HTTP requests
-	httpmock.Activate()
+	//httpmock.Activate()
 
 	a.httpClient = &http.Client{
 		Transport: &http2.Transport{
@@ -66,7 +66,7 @@ func (a *apiSuite) SetupSuite() {
 				return net.Dial(network, addr)
 			},
 		},
-		Timeout: 30 * time.Second,
+		Timeout: 45 * time.Second,
 	}
 
 	a.host = defaultHost
