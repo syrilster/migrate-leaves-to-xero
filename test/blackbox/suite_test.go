@@ -88,17 +88,14 @@ func (a *apiSuite) Test_BasicSuccess() {
 
 	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
 	res := &APIResponse{}
-	b := a.newFileUploadRequest("file", "app/test/blackbox/digio_leave.xlsx")
-	code, err := a.doHTTPRequest(url, http.MethodPost, res, b)
+	req := a.newFileUploadRequest(url, "file", "app/test/blackbox/digio_leave.xlsx")
+	code, err := a.doHTTPRequest(req, res)
+	fmt.Println("INSIDE BB TEST SUITE ============================================", code)
 	a.Require().NoError(err)
 	a.Require().Equal(http.StatusOK, code)
 }
 
-func (a *apiSuite) doHTTPRequest(url string, httpMethod string, response *APIResponse, body io.Reader) (int, error) {
-	req, err := http.NewRequest(httpMethod, url, body)
-
-	req.Header.Add("accept", "application/json")
-
+func (a *apiSuite) doHTTPRequest(req *http.Request, response *APIResponse) (int, error) {
 	r, err := a.httpClient.Do(req)
 	if err != nil {
 		return 0, err
@@ -123,7 +120,7 @@ func (a *apiSuite) doHTTPRequest(url string, httpMethod string, response *APIRes
 }
 
 // Creates a new file upload http request
-func (a *apiSuite) newFileUploadRequest(paramName, path string) *bytes.Buffer {
+func (a *apiSuite) newFileUploadRequest(url, paramName, path string) *http.Request {
 	file, err := os.Open(path)
 	a.Require().NoError(err)
 
@@ -142,8 +139,13 @@ func (a *apiSuite) newFileUploadRequest(paramName, path string) *bytes.Buffer {
 	_, err = io.Copy(part, file)
 	a.Require().NoError(err)
 
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body.Bytes()))
+	a.Require().NoError(err)
+
+	req.Header.Add("Content-Type", writer.FormDataContentType())
+
 	err = writer.Close()
 	a.Require().NoError(err)
 
-	return body
+	return req
 }
