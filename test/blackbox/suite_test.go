@@ -86,10 +86,10 @@ func (a *apiSuite) Test_BasicSuccess() {
 	httpmock.RegisterResponder(http.MethodGet, "https://api.test.xero.com",
 		httpmock.NewStringResponder(http.StatusOK, connectionResp))
 
-	url := fmt.Sprintf("http://%s/health", a.host)
+	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
 	res := &APIResponse{}
-	//b := a.newFileUploadRequest("file", "app/test/blackbox/digio_leave.xlsx")
-	code, err := a.doHTTPRequest(url, http.MethodPost, res, bytes.NewBuffer([]byte{}))
+	b := a.newFileUploadRequest("file", "app/test/blackbox/digio_leave.xlsx")
+	code, err := a.doHTTPRequest(url, http.MethodPost, res, b)
 	a.Require().NoError(err)
 	a.Require().Equal(http.StatusOK, code)
 }

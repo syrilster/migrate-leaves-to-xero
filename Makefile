@@ -34,7 +34,7 @@ sonar:
 .PHONY: bbtest
 bbtest:
 	@echo "Running blackbox tests"
-	(docker-compose --verbose up --force-recreate --always-recreate-deps --abort-on-container-exit --build blackbox) || { docker-compose logs -t; exit 1; }
+	(docker-compose up --force-recreate --always-recreate-deps --abort-on-container-exit --build blackbox) || { docker-compose logs -t; exit 1; }
 	docker-compose down
 
 test-coverage:
