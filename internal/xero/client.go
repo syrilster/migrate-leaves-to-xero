@@ -12,6 +12,7 @@ import (
 
 	"github.com/googleapis/gax-go/v2"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/model"
 )
 

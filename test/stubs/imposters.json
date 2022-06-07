@@ -79,9 +79,18 @@
         {
           "is": {
             "statusCode": 200,
-            "headers": {
-              "X-MinLimit-Remaining": "100"
-            },
+            "body": "{\n  \"PayrollCalendars\": [\n    {\n      \"PayrollCalendarID\": \"e1a10c07-9d3a-42f3-95d4-7d30a73f1994\",\n      \"PaymentDate\": \"/Date(632102400000+0000)/\"\n    }\n  ]\n}"
+          }
+        },
+        {
+          "is": {
+            "statusCode": 429,
+            "body": ""
+          }
+        },
+        {
+          "is": {
+            "statusCode": 200,
             "body": "{\n  \"PayrollCalendars\": [\n    {\n      \"PayrollCalendarID\": \"e1a10c07-9d3a-42f3-95d4-7d30a73f1994\",\n      \"PaymentDate\": \"/Date(632102400000+0000)/\"\n    }\n  ]\n}"
           }
         }

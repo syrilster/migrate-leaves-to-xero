@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/suite"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
 const (
@@ -51,6 +52,20 @@ func (a *apiSuite) SetupSuite() {
 }
 
 func (a *apiSuite) Test_BasicSuccess() {
+	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
+	res := &APIResponse{}
+	req := a.newFileUploadRequest(url, fmt.Sprintf("%s/digio_leave.xlsx", bbTestFilesPath))
+	code, errResp := a.doHTTPRequest(req, res)
+
+	a.Require().Nil(errResp)
+	a.Require().Equal(http.StatusOK, code)
+}
+
+// Test_Success_ErrorRateLimitRetryThenSuccess is a test to verify the rate limit scenario.
+// The Mountebank stub data is set up in a way that the payroll endpoint response will always
+// return a 429 error once and the subsequent calls will work successfully.
+// TODO: Verify that Mountebank was called x numbers of times to verify that the endpoint was actually retried
+func (a *apiSuite) Test_Success_ErrorRateLimitRetryThenSuccess() {
 	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
 	res := &APIResponse{}
 	req := a.newFileUploadRequest(url, fmt.Sprintf("%s/digio_leave.xlsx", bbTestFilesPath))

@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ses"
 	"gopkg.in/gomail.v2"
 	"math"
 	"strconv"
@@ -14,10 +12,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ses"
 	log "github.com/sirupsen/logrus"
+	"github.com/xuri/excelize/v2"
+
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/model"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/xero"
-	"github.com/xuri/excelize/v2"
 )
 
 var minRateLimit = 60
@@ -205,6 +206,7 @@ func (service Service) populateEmployeesMap(ctx context.Context, xeroEmployeesMa
 		errResult = append(errResult, errStr.Error())
 		return emptyMap, errResult
 	}
+
 	minRateLimit = empResponse.RateLimitRemaining
 	//populate the employees to a map
 	for _, emp := range empResponse.Employees {
@@ -243,6 +245,7 @@ func (service Service) processLeaveRequestByEmp(ctx context.Context, xeroEmploye
 		ctxLogger.Infof(errStr.Error())
 		return errStr
 	}
+
 	empID := xeroEmployeesMap[leaveReq.EmpName].EmployeeID
 	payCalendarID := xeroEmployeesMap[leaveReq.EmpName].PayrollCalendarID
 	if _, ok := payrollCalendarMap[payCalendarID]; !ok {
@@ -250,8 +253,8 @@ func (service Service) processLeaveRequestByEmp(ctx context.Context, xeroEmploye
 		ctxLogger.Infof(errStr.Error())
 		return errStr
 	}
-	paymentDate := payrollCalendarMap[payCalendarID]
 
+	paymentDate := payrollCalendarMap[payCalendarID]
 	err := service.reconcileLeaveRequestAndApply(ctx, empID, tenantID, leaveReq, paymentDate, resChan, wg)
 	return err
 }
@@ -469,10 +472,12 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 			errResult = append(errResult, errStr.Error())
 			continue
 		}
+
 		leaveType := row[3]
 		if leaveType == "" {
 			leaveType = row[4]
 		}
+
 		r := strings.NewReplacer("Carers", "Carer's",
 			"Unpaid", "Other Unpaid",
 			"Parental Leave (10 days for new family member)", "Parental Leave (Paid)",
@@ -488,6 +493,7 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 		if len(row) == 7 {
 			desc = row[6]
 		}
+
 		leaveReq := model.KrowLeaveRequest{
 			LeaveDate:      leaveDate,
 			LeaveDateEpoch: leaveDate.UnixNano() / 1000000,
@@ -686,7 +692,7 @@ func containsString(s []string, e string) bool {
 }
 
 // dateContainsSpecialChars is a func to check if the leave date contains any special chars
-// The raw date from excel is supposed to be of the format 43949 for date 28/04/2020. If the
+// The raw date from the Excel is supposed to be of the format 43949 for date 28/04/2020. If the
 // date is not in this format it will be in either 28/04/2020 or 28-04-2020 which is then considered invalid
 func dateContainsSpecialChars(date string) bool {
 	return strings.Contains(date, "/") || strings.Contains(date, "-")

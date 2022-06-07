@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/googleapis/gax-go/v2"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/googleapis/gax-go/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 const apiName = "GetPayrollCalendars"

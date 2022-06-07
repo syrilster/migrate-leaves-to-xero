@@ -2,15 +2,17 @@ package internal
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/aws/aws-sdk-go/service/ses"
+
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/auth"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/config"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/middlewares"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/xero"
-	"net/http"
 )
 
-//StatusRoute health check route
+// StatusRoute implements the health check route
 func StatusRoute() (route config.Route) {
 	route = config.Route{
 		Path:    "/health",

@@ -2,13 +2,15 @@ package internal
 
 import (
 	"bytes"
-	log "github.com/sirupsen/logrus"
-	"github.com/syrilster/migrate-leave-krow-to-xero/internal/config"
-	"github.com/syrilster/migrate-leave-krow-to-xero/internal/util"
-	"github.com/tealeg/xlsx"
 	"io"
 	"net/http"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/tealeg/xlsx"
+
+	"github.com/syrilster/migrate-leave-krow-to-xero/internal/config"
+	"github.com/syrilster/migrate-leave-krow-to-xero/internal/util"
 )
 
 const supportedFileFormat = ".xlsx"
@@ -38,6 +40,7 @@ func Handler(xeroHandler XeroAPIHandler) func(res http.ResponseWriter, req *http
 			util.WithBodyAndStatus(nil, http.StatusInternalServerError, res)
 			return
 		}
+
 		errResult = xeroHandler.MigrateLeaveKrowToXero(ctx)
 		if len(errResult) > 0 {
 			contextLogger.Error("There were some errors during processing leaves")
@@ -76,6 +79,7 @@ func parseRequestBody(req *http.Request) error {
 		contextLogger.WithError(err).Error("Failed to convert bytes to excel file")
 		return err
 	}
+
 	err = excelFile.Save(envValues.XlsFileLocation)
 	if err != nil {
 		contextLogger.WithError(err).Error("Failed to save excel file to disk")
