@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	defaultHost = "blackboxapi:8000"
+	defaultHost     = "blackboxapi:8000"
+	bbTestFilesPath = "/app/test/blackbox/testfiles"
 )
 
 // entrypoint for test
@@ -52,7 +53,7 @@ func (a *apiSuite) SetupSuite() {
 func (a *apiSuite) Test_BasicSuccess() {
 	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
 	res := &APIResponse{}
-	req := a.newFileUploadRequest(url, "file", "app/test/blackbox/digio_leave.xlsx")
+	req := a.newFileUploadRequest(url, fmt.Sprintf("%s/digio_leave.xlsx", bbTestFilesPath))
 	code, errResp := a.doHTTPRequest(req, res)
 
 	a.Require().Nil(errResp)
@@ -62,7 +63,7 @@ func (a *apiSuite) Test_BasicSuccess() {
 func (a *apiSuite) Test_ErrorScenario() {
 	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
 	res := &APIResponse{}
-	req := a.newFileUploadRequest(url, "file", "app/test/blackbox/test_leave.xlsx")
+	req := a.newFileUploadRequest(url, fmt.Sprintf("%s/test_leave.xlsx", bbTestFilesPath))
 	code, errResp := a.doHTTPRequest(req, res)
 	r := errResp.res
 
@@ -97,7 +98,7 @@ func (a *apiSuite) doHTTPRequest(req *http.Request, response *APIResponse) (int,
 }
 
 // newFileUploadRequest creates a new file upload http request
-func (a *apiSuite) newFileUploadRequest(url, paramName, path string) *http.Request {
+func (a *apiSuite) newFileUploadRequest(url, path string) *http.Request {
 	file, err := os.Open(path)
 	a.Require().NoError(err)
 
@@ -110,7 +111,7 @@ func (a *apiSuite) newFileUploadRequest(url, paramName, path string) *http.Reque
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(paramName, fi.Name())
+	part, err := writer.CreateFormFile("file", fi.Name())
 	a.Require().NoError(err)
 
 	_, err = io.Copy(part, file)
