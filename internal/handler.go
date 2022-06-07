@@ -41,7 +41,7 @@ func Handler(xeroHandler XeroAPIHandler) func(res http.ResponseWriter, req *http
 		errResult = xeroHandler.MigrateLeaveKrowToXero(ctx)
 		if len(errResult) > 0 {
 			contextLogger.Error("There were some errors during processing leaves")
-			util.WithBodyAndStatus(nil, http.StatusInternalServerError, res)
+			util.WithBodyAndStatus(errResult, http.StatusInternalServerError, res)
 			return
 		}
 		util.WithBodyAndStatus("", http.StatusOK, res)

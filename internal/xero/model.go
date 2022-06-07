@@ -5,6 +5,7 @@ type EmpResponse struct {
 	Employees          []Employee `json:"Employees"`
 	RateLimitRemaining int
 }
+
 type ConnectionResp struct {
 	Connections []Connection
 }

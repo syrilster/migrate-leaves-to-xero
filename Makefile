@@ -22,7 +22,7 @@ push:
 	docker push ${APP}
 
 test:
-	set -euxo pipefail; go test -v ./... 2>&1 | tee test-output.txt
+	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox) 2>&1 | tee test-output.txt
 
 sonar:
 	mkdir -p gen
@@ -30,6 +30,12 @@ sonar:
 	go test `go list ./... | grep -vE "./test"` \
 	   -race -covermode=atomic -json \
 	   -coverprofile=$(COVER_FILE)
+
+.PHONY: bbtest
+bbtest:
+	@echo "Running blackbox tests"
+	(docker-compose up --force-recreate --always-recreate-deps --abort-on-container-exit --build blackbox) || { docker-compose logs -t; exit 1; }
+	docker-compose down
 
 test-coverage:
 	set -euxo pipefail;
