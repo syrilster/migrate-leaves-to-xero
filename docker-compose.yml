@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.8'
 services:
   web:
     container_name: leave-migration-ui
@@ -14,17 +14,62 @@ services:
       - './frontend/src:/frontend/src'
       - '/tmp:/tmp'
     ports:
-      - 3000:3000
+      - "3000:3000"
   api:
-     container_name: leave-migration-api
-     build:
-       context: .
-     image: digio/migrate-leave-to-xero-api:latest
-     restart: always
-     env_file:
-       - .env
-     ports:
-       - 8000:8000
-     volumes:
-       - '.:/app'
-       - '/tmp:/tmp'
+    container_name: leave-migration-api
+    build:
+      context: .
+    image: digio/migrate-leave-to-xero-api:latest
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - '.:/app'
+      - '/tmp:/tmp'
+
+  blackboxapi:
+    container_name: blackboxapi
+    hostname: blackboxapi
+    build:
+      context: .
+      dockerfile: ./test/blackbox/Dockerfile
+    restart: always
+    env_file:
+      - ./test/blackbox/.env
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    volumes:
+      - '.:/app'
+      - '/tmp:/tmp'
+
+  blackbox:
+    depends_on:
+      - blackboxapi
+      - mountebank
+    build:
+      context: .
+      dockerfile: Dockerfile.blackbox
+    env_file:
+      - test/blackbox/.env
+    environment:
+      WAIT_HOSTS: blackboxapi:8000, mountebank:8090
+    volumes:
+      - '.:/app'
+    command: sh -c "/wait && /bin/blackbox"
+    links:
+      - blackboxapi
+      - mountebank
+
+  mountebank:
+    container_name: mountebank
+    image: jkris/mountebank:latest
+    volumes:
+      - ./test/stubs:/stubs
+    ports:
+      - 2525:2525
+      - 8090:8090
+    command: --configfile /stubs/imposters.json --allowInjection
