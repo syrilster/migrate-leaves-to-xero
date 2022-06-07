@@ -218,7 +218,6 @@ func (service Service) populateEmployeesMap(ctx context.Context, xeroEmployeesMa
 		var errs []string
 		xeroEmployeesMap, errs = service.populateEmployeesMap(ctx, xeroEmployeesMap, tenantID, orgName, page+1)
 		if errs != nil {
-			errResult = errs
 			return emptyMap, errs
 		}
 	}
