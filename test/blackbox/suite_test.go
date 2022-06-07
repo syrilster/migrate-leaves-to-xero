@@ -75,10 +75,10 @@ func (a *apiSuite) doHTTPRequest(req *http.Request, response *APIResponse) (int,
 	b, err := ioutil.ReadAll(r.Body)
 	a.Require().NoError(err)
 
-	var resp []string
+	var resp string
 	a.Require().NoError(json.Unmarshal(b, &resp))
 
-	response.res = resp
+	//response.res = resp
 	return r.StatusCode, nil
 }
 
