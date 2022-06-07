@@ -113,7 +113,9 @@ func TestLeaveMigration(t *testing.T) {
 	require.NoError(t, err)
 	req := &xero.ReusableRequest{Request: r}
 	mockClient := new(MockXeroClient)
-	sesClient := ses.New(session.New())
+	s, err := session.NewSession()
+	require.NoError(t, err)
+	sesClient := ses.New(s)
 	mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 	mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(empResp, nil)
 	mockClient.On("EmployeeLeaveBalance", context.Background(), digIOTenantID, empID).Return(leaveBalResp, nil)
@@ -166,7 +168,9 @@ func TestLeaveMigration(t *testing.T) {
 
 		leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees, RateLimitRemaining: 60}
 		mockClient := new(MockXeroClient)
-		sesClient := ses.New(session.New())
+		s, err := session.NewSession()
+		require.NoError(t, err)
+		sesClient := ses.New(s)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(empResp, nil)
 		mockClient.On("GetPayrollCalendars", context.Background(), any(req)).Return(payRollCalendarResp, nil)
@@ -175,10 +179,10 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
 		service := NewService(mockClient, xlsLocation, sesClient, "", "")
-		err := service.MigrateLeaveKrowToXero(context.Background())
-		assert.NotNil(t, err)
-		assert.Equal(t, 2, len(err))
-		assert.True(t, contains(err, expectedResp))
+		resp := service.MigrateLeaveKrowToXero(context.Background())
+		assert.NotNil(t, resp)
+		assert.Equal(t, 2, len(resp))
+		assert.True(t, contains(resp, expectedResp))
 	})
 
 	t.Run("Success - When Org having more than 100 employees", func(t *testing.T) {
@@ -192,7 +196,9 @@ func TestLeaveMigration(t *testing.T) {
 
 		leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees, RateLimitRemaining: 60}
 		mockClient := new(MockXeroClient)
-		sesClient := ses.New(session.New())
+		s, err := session.NewSession()
+		require.NoError(t, err)
+		sesClient := ses.New(s)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(response, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "2").Return(empResp, nil)
@@ -202,8 +208,8 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
 		service := NewService(mockClient, xlsLocation, sesClient, "", "")
-		err := service.MigrateLeaveKrowToXero(context.Background())
-		assert.Nil(t, err)
+		resp := service.MigrateLeaveKrowToXero(context.Background())
+		assert.Nil(t, resp)
 	})
 
 	t.Run("Failure - When Org having more than 100 employees and page 2 return error", func(t *testing.T) {
@@ -217,7 +223,9 @@ func TestLeaveMigration(t *testing.T) {
 
 		leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees, RateLimitRemaining: 60}
 		mockClient := new(MockXeroClient)
-		sesClient := ses.New(session.New())
+		s, err := session.NewSession()
+		require.NoError(t, err)
+		sesClient := ses.New(s)
 		mockClient.On("GetConnections", context.Background()).Return(connectionResp, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "1").Return(response, nil)
 		mockClient.On("GetEmployees", context.Background(), digIOTenantID, "2").Return(empResp, errors.New("error"))
@@ -227,9 +235,9 @@ func TestLeaveMigration(t *testing.T) {
 		mockClient.On("EmployeeLeaveApplication", context.Background(), digIOTenantID, mock.Anything).Return(nil)
 
 		service := NewService(mockClient, xlsLocation, sesClient, "", "")
-		err := service.MigrateLeaveKrowToXero(context.Background())
-		assert.NotNil(t, err)
-		assert.True(t, contains(err, "Failed to fetch employees from Xero. Organization: DigIO. "))
+		resp := service.MigrateLeaveKrowToXero(context.Background())
+		assert.NotNil(t, resp)
+		assert.True(t, contains(resp, "Failed to fetch employees from Xero. Organization: DigIO. "))
 	})
 
 	t.Run("Error when ORG is missing in Xero", func(t *testing.T) {

@@ -63,7 +63,8 @@ func TestClient_GetPayrollCalendars(t *testing.T) {
 				c, err := json.Marshal(res)
 				require.NoError(t, err)
 
-				w.Write(c)
+				_, err = w.Write(c)
+				require.NoError(t, err)
 			},
 		},
 		{

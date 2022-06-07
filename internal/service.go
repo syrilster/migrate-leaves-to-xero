@@ -297,7 +297,6 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	if _, ok := leaveBalanceMap[leaveReq.LeaveType]; !ok {
 		errStr := fmt.Errorf("Leave type %v not found/configured in Xero for Employee: %v. Organization: %v ", leaveReq.LeaveType, leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error())
-		errorsStr = append(errorsStr, errStr.Error())
 		return errStr
 	}
 
@@ -447,6 +446,13 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 
 	ctxLogger.Info("SheetName: ", f.GetSheetName(f.GetActiveSheetIndex()))
 	rows, err := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex()), excelize.Options{RawCellValue: true})
+	if err != nil {
+		errStr := fmt.Errorf("Unable to get active sheet from the excel. ")
+		ctxLogger.WithError(err).Error(errStr)
+		errResult = append(errResult, errStr.Error())
+		return nil, errResult
+	}
+
 	for index, row := range rows {
 		// This is to skip the header row of the excel sheet
 		if index == 0 {
@@ -455,9 +461,16 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 
 		rawDate := row[1]
 		ld, err := strconv.ParseFloat(rawDate, 64)
+		if err != nil {
+			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020) ", rawDate)
+			ctxLogger.WithError(err).Error(errStr)
+			errResult = append(errResult, errStr.Error())
+			continue
+		}
+
 		leaveDate, err := excelize.ExcelDateToTime(ld, false)
 		if err != nil || dateContainsSpecialChars(rawDate) {
-			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020)", rawDate)
+			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020) ", rawDate)
 			if err != nil {
 				ctxLogger.WithError(err).Error(errStr)
 			}
@@ -543,7 +556,6 @@ func (service Service) sesSendEmail(ctx context.Context, attachmentData string, 
 		return
 	}
 	contextLogger.Infof("Finished sesSendEmail func")
-	return
 }
 
 func populateEmailRecipients(emailTo string) []*string {

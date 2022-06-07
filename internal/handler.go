@@ -32,7 +32,6 @@ func Handler(xeroHandler XeroAPIHandler) func(res http.ResponseWriter, req *http
 		if filepath.Ext(fileHeader.Filename) != supportedFileFormat {
 			contextLogger.WithError(err).Error("Unable to open the uploaded file. Please confirm the file is in .xlsx format.")
 			util.WithBodyAndStatus(nil, http.StatusBadRequest, res)
-			return
 		}
 
 		err = parseRequestBody(req)

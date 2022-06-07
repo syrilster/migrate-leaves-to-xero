@@ -2,7 +2,6 @@ package blackbox
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,7 +27,6 @@ func TestApiSuite(t *testing.T) {
 type apiSuite struct {
 	suite.Suite
 
-	ctx        context.Context
 	httpClient *http.Client
 	host       string
 }
