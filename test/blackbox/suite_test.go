@@ -53,18 +53,32 @@ func (a *apiSuite) Test_BasicSuccess() {
 	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
 	res := &APIResponse{}
 	req := a.newFileUploadRequest(url, "file", "app/test/blackbox/digio_leave.xlsx")
-	code, err := a.doHTTPRequest(req, res)
-	a.Require().NoError(err)
+	code, errResp := a.doHTTPRequest(req, res)
+
+	a.Require().Nil(errResp)
 	a.Require().Equal(http.StatusOK, code)
 }
 
-func (a *apiSuite) doHTTPRequest(req *http.Request, response *APIResponse) (int, error) {
-	r, err := a.httpClient.Do(req)
-	if err != nil {
-		return 0, err
-	}
+func (a *apiSuite) Test_ErrorScenario() {
+	url := fmt.Sprintf("http://%s/v1/migrateLeaves", a.host)
+	res := &APIResponse{}
+	req := a.newFileUploadRequest(url, "file", "app/test/blackbox/test_leave.xlsx")
+	code, errResp := a.doHTTPRequest(req, res)
+	r := errResp.res
 
-	if r.StatusCode != http.StatusOK {
+	a.Require().Equal(http.StatusInternalServerError, code)
+	a.Require().NotNil(r)
+	a.Require().Len(r, 2)
+
+	a.Require().Contains(r, "Failed to get Organization details from Xero. Organization: CMD. ")
+	a.Require().Contains(r, "Employee not found in Xero. Employee: Test Data. Organization: DigIO  ")
+}
+
+func (a *apiSuite) doHTTPRequest(req *http.Request, response *APIResponse) (int, *APIResponse) {
+	r, err := a.httpClient.Do(req)
+	a.Require().NoError(err)
+
+	if r.StatusCode == http.StatusOK {
 		return r.StatusCode, nil
 	}
 
@@ -75,14 +89,14 @@ func (a *apiSuite) doHTTPRequest(req *http.Request, response *APIResponse) (int,
 	b, err := ioutil.ReadAll(r.Body)
 	a.Require().NoError(err)
 
-	var resp string
+	var resp []string
 	a.Require().NoError(json.Unmarshal(b, &resp))
 
-	//response.res = resp
-	return r.StatusCode, nil
+	response.res = resp
+	return r.StatusCode, response
 }
 
-// Creates a new file upload http request
+// newFileUploadRequest creates a new file upload http request
 func (a *apiSuite) newFileUploadRequest(url, paramName, path string) *http.Request {
 	file, err := os.Open(path)
 	a.Require().NoError(err)
