@@ -213,7 +213,8 @@ func (service Service) populateEmployeesMap(ctx context.Context, xeroEmployeesMa
 		xeroEmployeesMap[emp.FirstName+" "+emp.LastName] = emp
 	}
 
-	//Recursive call to get next page
+	// Recursive call to get next page
+	// TODO: Fix this. Errors won't be returned correctly in the recursive calls
 	if len(empResponse.Employees) > 99 {
 		var errs []string
 		xeroEmployeesMap, errs = service.populateEmployeesMap(ctx, xeroEmployeesMap, tenantID, orgName, page+1)
