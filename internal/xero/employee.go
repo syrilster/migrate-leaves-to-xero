@@ -12,6 +12,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	headerKeyXeroTenantID = "xero-tenant-id"
+	headerKeyAuth         = "Authorization"
+	bearer                = "Bearer"
+
+	accessTokenFetchErr = "Error fetching the access token"
+)
+
 func (c *client) GetEmployees(ctx context.Context, tenantID string, page string) (*EmpResponse, error) {
 	contextLogger := log.WithContext(ctx)
 	contextLogger.Info("Fetching all employees for tenant: ", tenantID)
@@ -22,11 +30,12 @@ func (c *client) GetEmployees(ctx context.Context, tenantID string, page string)
 
 	accessToken, err := c.getAccessToken(ctx)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("Error fetching the access token")
+		contextLogger.WithError(err).Errorf(accessTokenFetchErr)
 		return nil, err
 	}
-	httpRequest.Header.Set("Authorization", "Bearer "+accessToken)
-	httpRequest.Header.Set("xero-tenant-id", tenantID)
+
+	httpRequest.Header.Set(headerKeyAuth, fmt.Sprintf("%s %s", bearer, accessToken))
+	httpRequest.Header.Set(headerKeyXeroTenantID, tenantID)
 
 	contextLogger.Info("Calling Xero Employee Endpoint with page filter for page: ", page)
 	resp, err := c.Client.Do(httpRequest)
@@ -37,7 +46,7 @@ func (c *client) GetEmployees(ctx context.Context, tenantID string, page string)
 
 	defer func() {
 		if err = resp.Body.Close(); err != nil {
-			fmt.Println("Error when closing:", err)
+			contextLogger.WithError(err).Errorf("Error closing the ioReader. %v", err)
 		}
 	}()
 
@@ -76,11 +85,11 @@ func (c *client) EmployeeLeaveBalance(ctx context.Context, tenantID string, empI
 
 	accessToken, err := c.getAccessToken(ctx)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("Error fetching the access token")
+		contextLogger.WithError(err).Errorf(accessTokenFetchErr)
 		return nil, err
 	}
-	httpRequest.Header.Set("Authorization", "Bearer "+accessToken)
-	httpRequest.Header.Set("xero-tenant-id", tenantID)
+	httpRequest.Header.Set(headerKeyAuth, fmt.Sprintf("%s %s", bearer, accessToken))
+	httpRequest.Header.Set(headerKeyXeroTenantID, tenantID)
 
 	resp, err := c.Client.Do(httpRequest)
 	if err != nil {
@@ -90,7 +99,7 @@ func (c *client) EmployeeLeaveBalance(ctx context.Context, tenantID string, empI
 
 	defer func() {
 		if err = resp.Body.Close(); err != nil {
-			fmt.Println("Error when closing:", err)
+			contextLogger.WithError(err).Errorf("Error closing the ioReader. %v", err)
 		}
 	}()
 
@@ -135,11 +144,12 @@ func (c *client) EmployeeLeaveApplication(ctx context.Context, tenantID string, 
 
 	accessToken, err := c.getAccessToken(ctx)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("Error fetching the access token")
+		contextLogger.WithError(err).Errorf(accessTokenFetchErr)
 		return err
 	}
-	httpRequest.Header.Set("Authorization", "Bearer "+accessToken)
-	httpRequest.Header.Set("xero-tenant-id", tenantID)
+
+	httpRequest.Header.Set(headerKeyAuth, fmt.Sprintf("%s %s", bearer, accessToken))
+	httpRequest.Header.Set(headerKeyXeroTenantID, tenantID)
 	httpRequest.Header.Set("Content-Type", "application/json")
 	httpRequest.Header.Set("Accept", "application/json")
 
@@ -151,7 +161,7 @@ func (c *client) EmployeeLeaveApplication(ctx context.Context, tenantID string, 
 
 	defer func() {
 		if err = resp.Body.Close(); err != nil {
-			fmt.Println("Error when closing:", err)
+			contextLogger.WithError(err).Errorf("Error closing the ioReader. %v", err)
 		}
 	}()
 
