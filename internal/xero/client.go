@@ -17,7 +17,10 @@ import (
 )
 
 const (
-	payrollEndpoint = "payroll.xro/1.0/PayrollCalendars"
+	payrollEndpoint      = "payroll.xro/1.0/PayrollCalendars"
+	getEmployeesEndpoint = "payroll.xro/1.0/Employees"
+
+	pageQueryParam = "page="
 )
 
 var (
@@ -33,7 +36,8 @@ var (
 )
 
 type ClientInterface interface {
-	GetEmployees(ctx context.Context, tenantID string, page string) (*EmpResponse, error)
+	NewGetEmployeesRequest(ctx context.Context, tenantID string, page string) (*ReusableRequest, error)
+	GetEmployees(ctx context.Context, req *ReusableRequest) (*EmpResponse, error)
 	GetConnections(ctx context.Context) ([]Connection, error)
 	EmployeeLeaveBalance(ctx context.Context, tenantID string, empID string) (*LeaveBalanceResponse, error)
 	EmployeeLeaveApplication(ctx context.Context, tenantID string, request LeaveApplicationRequest) error
@@ -125,6 +129,17 @@ func getHTTPStatusCode(ctx context.Context, res *http.Response, api string) erro
 	}
 }
 
-func BuildXeroPayrollCalendarEndpoint(url string) string {
+func newRetry(ctx context.Context) (context.Context, context.CancelFunc, *gax.Backoff) {
+	bo := NewDefaultBackoff()
+
+	cctx, cancel := context.WithTimeout(ctx, bo.timeout)
+	return cctx, cancel, bo.Backoff
+}
+
+func buildXeroPayrollCalendarEndpoint(url string) string {
 	return fmt.Sprintf("%s/%s", url, payrollEndpoint)
+}
+
+func buildXeroEmployeesEndpoint(url, page string) string {
+	return fmt.Sprintf("%s/%s?%s%s", url, getEmployeesEndpoint, pageQueryParam, page)
 }

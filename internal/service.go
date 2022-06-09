@@ -199,7 +199,15 @@ func (service Service) populateEmployeesMap(ctx context.Context, xeroEmployeesMa
 	emptyMap := make(map[string]xero.Employee)
 	var errResult []string
 
-	empResponse, err := service.client.GetEmployees(ctx, tenantID, strconv.Itoa(page))
+	req, err := service.client.NewGetEmployeesRequest(ctx, tenantID, strconv.Itoa(page))
+	if err != nil {
+		errStr := fmt.Errorf("failed to build NewGetEmployeesRequest. Cause %v", err.Error())
+		ctxLogger.Infof(err.Error(), err)
+		errResult = append(errResult, errStr.Error())
+		return emptyMap, errResult
+	}
+
+	empResponse, err := service.client.GetEmployees(ctx, req)
 	if err != nil {
 		errStr := fmt.Errorf("Failed to fetch employees from Xero. Organization: %v. ", orgName)
 		ctxLogger.Infof(err.Error(), err)
@@ -207,14 +215,13 @@ func (service Service) populateEmployeesMap(ctx context.Context, xeroEmployeesMa
 		return emptyMap, errResult
 	}
 
-	minRateLimit = empResponse.RateLimitRemaining
 	//populate the employees to a map
 	for _, emp := range empResponse.Employees {
 		xeroEmployeesMap[emp.FirstName+" "+emp.LastName] = emp
 	}
 
 	// Recursive call to get next page
-	// TODO: Fix this. Errors won't be returned correctly in the recursive calls
+	//TODO: Fix this. Errors won't be returned correctly in the recursive calls
 	if len(empResponse.Employees) > 99 {
 		var errs []string
 		xeroEmployeesMap, errs = service.populateEmployeesMap(ctx, xeroEmployeesMap, tenantID, orgName, page+1)
