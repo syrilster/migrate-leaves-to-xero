@@ -16,7 +16,7 @@
         {
           "is": {
             "statusCode": 200,
-            "body": "[\n  {\n    \"id\": \"c509-4dc2-bee2\",\n    \"authEventId\": \"228dd1d3-59e1-4d89-88e7\",\n    \"tenantId\": \"2e9e4e41-feab-4bb2-9fc1-ef1c61fd7e9b\",\n    \"tenantType\": \"ORGANISATION\",\n    \"tenantName\": \"DigIO\",\n    \"createdDateUtc\": \"2022-04-14T04:05:18.2318600\",\n    \"updatedDateUtc\": \"2022-04-14T04:05:18.2331860\"\n  }\n]"
+            "body": "[\n  {\n    \"id\": \"c509-4dc2-bee2\",\n    \"authEventId\": \"228dd1d3-59e1-4d89-88e7\",\n    \"tenantId\": \"2e9e4e41-feab-4bb2-9fc1-ef1c61fd7e9b\",\n    \"tenantType\": \"ORGANISATION\",\n    \"tenantName\": \"DigIO\",\n    \"createdDateUtc\": \"2022-04-14T04:05:18.2318600\",\n    \"updatedDateUtc\": \"2022-04-14T04:05:18.2331860\"\n  },\n  {\n    \"id\": \"c610-5dd2-cee3\",\n    \"authEventId\": \"228dd1d3-59e1-4d89-88e7\",\n    \"tenantId\": \"3f0e5e41-gfbc-4bb2-9fc1-fg2d72ge8f90c\",\n    \"tenantType\": \"ORGANISATION\",\n    \"tenantName\": \"CMD\",\n    \"createdDateUtc\": \"2021-04-14T04:05:18.2318600\",\n    \"updatedDateUtc\": \"2021-04-14T04:05:18.2331860\"\n  }\n]"
           }
         }
       ]
@@ -97,7 +97,40 @@
       ]
     },
     {
-      "responses": [{ "is": { "statusCode": 400 } }],
+      "predicates": [
+        {
+          "equals": {
+            "method": "GET",
+            "path": "/payroll.xro/1.0/PayrollCalendars",
+            "headers": {
+              "xero-tenant-id": "3f0e5e41-gfbc-4bb2-9fc1-fg2d72ge8f90c"
+            }
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 429,
+            "body": ""
+          }
+        },
+        {
+          "is": {
+            "statusCode": 200,
+            "body": "{\n  \"PayrollCalendars\": [\n    {\n      \"PayrollCalendarID\": \"e1a10c07-9d3a-42f3-95d4-7d30a73f1994\",\n      \"PaymentDate\": \"/Date(632102400000+0000)/\"\n    }\n  ]\n}"
+          }
+        }
+      ]
+    },
+    {
+      "responses": [
+        {
+          "is": {
+            "statusCode": 400
+          }
+        }
+      ],
       "predicates": [
         {
           "equals": {
@@ -132,7 +165,37 @@
       ]
     },
     {
-      "responses": [{ "is": { "statusCode": 400 } }],
+      "predicates": [
+        {
+          "equals": {
+            "method": "POST",
+            "path": "/payroll.xro/1.0/LeaveApplications",
+            "headers": {
+              "xero-tenant-id": "3f0e5e41-gfbc-4bb2-9fc1-fg2d72ge8f90c"
+            }
+          }
+        }
+      ],
+      "responses": [
+        {
+          "is": {
+            "statusCode": 200,
+            "headers": {
+              "X-MinLimit-Remaining": "100"
+            },
+            "body": ""
+          }
+        }
+      ]
+    },
+    {
+      "responses": [
+        {
+          "is": {
+            "statusCode": 400
+          }
+        }
+      ],
       "predicates": [
         {
           "equals": {
@@ -145,7 +208,9 @@
     {
       "responses": [
         {
-          "is": { "statusCode": 404 }
+          "is": {
+            "statusCode": 404
+          }
         }
       ]
     }
