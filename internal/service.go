@@ -21,8 +21,6 @@ import (
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/xero"
 )
 
-var minRateLimit = 60
-
 const (
 	unPaidLeave        string = "Other Unpaid Leave"
 	compassionateLeave string = "Compassionate Leave (paid)"
@@ -111,12 +109,6 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 	}
 
 	for _, leaveReq := range leaveRequests {
-		//To avoid Xero Minute Limit: 60 calls per minute
-		if minRateLimit < 5 {
-			ctxLogger.Info("Pausing the APP run due to less rate limit. Remaining: ", minRateLimit)
-			time.Sleep(60 * time.Second)
-		}
-
 		if _, ok := connectionsMap[leaveReq.OrgName]; !ok {
 			errStr := fmt.Errorf("Failed to get Organization details from Xero. Organization: %v. ", leaveReq.OrgName)
 			ctxLogger.Infof(errStr.Error())
@@ -285,14 +277,20 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	skipUnpaidLeave = strings.EqualFold(leaveReq.LeaveType, compassionateLeave) || strings.EqualFold(leaveReq.LeaveType, juryDutyLeave)
 
 	//Just to make sure that the previous leave request if any has been completed and we get the updated balance.
-	time.Sleep(200 * time.Millisecond)
-	leaveBalance, err := service.client.EmployeeLeaveBalance(ctx, tenantID, empID)
+	time.Sleep(1 * time.Second)
+	req, err := service.client.NewEmployeeLeaveBalanceRequest(ctx, tenantID, empID)
+	if err != nil {
+		errStr := fmt.Errorf("failed to build NewEmployeeLeaveBalanceRequest. Cause %v", err.Error())
+		ctxLogger.Infof(err.Error(), err)
+		return errStr
+	}
+
+	leaveBalance, err := service.client.EmployeeLeaveBalance(ctx, req)
 	if err != nil {
 		errStr := fmt.Errorf("Failed to fetch employee leave balance from Xero. Employee: %v. Organization: %v ", leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error(), err)
 		return errStr
 	}
-	minRateLimit = leaveBalance.RateLimitRemaining
 
 	for _, leaveBal := range leaveBalance.Employees[0].LeaveBalance {
 		leaveBalanceMap[leaveBal.LeaveType] = leaveBal
@@ -428,13 +426,23 @@ func (service Service) applyLeaveRequestToXero(ctx context.Context, tenantID str
 		wg.Done()
 	}()
 
-	err := service.client.EmployeeLeaveApplication(ctx, tenantID, leaveApplication)
+	req, err := service.client.NewEmployeeLeaveApplicationRequest(ctx, tenantID, leaveApplication)
 	if err != nil {
-		ctxLogger.Infof("Leave Application Request: %v", leaveApplication)
-		ctxLogger.WithError(err).Errorf("Failed to post Leave application to xero for Employee: %v Organization: %v", empName, orgName)
+		errStr := fmt.Errorf("failed to build NewEmployeeLeaveApplicationRequest. Cause %v", err.Error())
+		ctxLogger.WithError(err).Errorf(errStr.Error())
 		resChan <- fmt.Sprintf("Error: Failed to post Leave application to xero for Employee: %v Organization: %v ", empName, orgName)
 		return
 	}
+
+	err = service.client.EmployeeLeaveApplication(ctx, req)
+	if err != nil {
+		errStr := fmt.Errorf("Error: Failed to post Leave application to xero for Employee: %v Organization: %v. Cause %v ", empName, orgName, err.Error())
+		ctxLogger.Infof("Leave Application Request: %v", leaveApplication)
+		ctxLogger.WithError(err).Errorf(errStr.Error())
+		resChan <- fmt.Sprint(errStr.Error())
+		return
+	}
+
 	resChan <- fmt.Sprintf("%v,%v,%v,%v,%v,%v",
 		empName, originalLeaveType, appliedLeaveType, leaveDate, leaveApplication.LeavePeriods[0].NumberOfUnits, orgName)
 }

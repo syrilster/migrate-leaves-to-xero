@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	payrollEndpoint      = "payroll.xro/1.0/PayrollCalendars"
-	getEmployeesEndpoint = "payroll.xro/1.0/Employees"
+	payrollEndpoint             = "payroll.xro/1.0/PayrollCalendars"
+	getEmployeesEndpoint        = "payroll.xro/1.0/Employees"
+	empLeaveApplicationEndpoint = "payroll.xro/1.0/LeaveApplications"
 
 	pageQueryParam = "page="
 )
@@ -39,8 +40,10 @@ type ClientInterface interface {
 	NewGetEmployeesRequest(ctx context.Context, tenantID string, page string) (*ReusableRequest, error)
 	GetEmployees(ctx context.Context, req *ReusableRequest) (*EmpResponse, error)
 	GetConnections(ctx context.Context) ([]Connection, error)
-	EmployeeLeaveBalance(ctx context.Context, tenantID string, empID string) (*LeaveBalanceResponse, error)
-	EmployeeLeaveApplication(ctx context.Context, tenantID string, request LeaveApplicationRequest) error
+	NewEmployeeLeaveBalanceRequest(ctx context.Context, tenantID string, empID string) (*ReusableRequest, error)
+	EmployeeLeaveBalance(ctx context.Context, req *ReusableRequest) (*LeaveBalanceResponse, error)
+	NewEmployeeLeaveApplicationRequest(ctx context.Context, tenantID string, leaveReq LeaveApplicationRequest) (*ReusableRequest, error)
+	EmployeeLeaveApplication(ctx context.Context, req *ReusableRequest) error
 	GetPayrollCalendars(ctx context.Context, req *ReusableRequest) (*PayrollCalendarResponse, error)
 	NewPayrollRequest(ctx context.Context, tenantID string) (*ReusableRequest, error)
 }
@@ -142,4 +145,12 @@ func buildXeroPayrollCalendarEndpoint(url string) string {
 
 func buildXeroEmployeesEndpoint(url, page string) string {
 	return fmt.Sprintf("%s/%s?%s%s", url, getEmployeesEndpoint, pageQueryParam, page)
+}
+
+func buildXeroLeaveBalanceEndpoint(url, empID string) string {
+	return fmt.Sprintf("%s/%s/%s", url, getEmployeesEndpoint, empID)
+}
+
+func buildXeroLeaveApplicationEndpoint(url string) string {
+	return fmt.Sprintf("%s/%s", url, empLeaveApplicationEndpoint)
 }

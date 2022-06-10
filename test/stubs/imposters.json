@@ -34,9 +34,6 @@
         {
           "is": {
             "statusCode": 200,
-            "headers": {
-              "X-MinLimit-Remaining": "100"
-            },
             "body": "{\n  \"Status\": \"OK\",\n  \"Employees\": [\n    {\n      \"EmployeeID\": \"6753c19a\",\n      \"FirstName\": \"Syril\",\n      \"LastName\": \"Sadasivan\",\n      \"Status\": \"ACTIVE\",\n      \"PayrollCalendarID\": \"e1a10c07-9d3a-42f3-95d4-7d30a73f1994\"\n    }\n  ]\n}"
           }
         }
@@ -55,9 +52,6 @@
         {
           "is": {
             "statusCode": 200,
-            "headers": {
-              "X-MinLimit-Remaining": "100"
-            },
             "body": "{\n   \"Employees\":[\n      {\n         \"EmployeeID\":\"6753c19a\",\n         \"FirstName\":\"Syril\",\n         \"LastName\":\"Sadasivan\",\n         \"Status\":\"ACTIVE\",\n         \"PayrollCalendarID\":\"e1a10c07-9d3a-42f3-95d4-7d30a73f1994\",\n         \"LeaveBalances\":[\n            {\n               \"LeaveName\":\"Annual Leave\",\n               \"LeaveTypeID\":\"73f37030-b1ed-bb37-0242ac130002\",\n               \"NumberOfUnits\":38,\n               \"TypeOfUnits\":\"Hours\"\n            }\n         ]\n      }\n   ]\n}"
           }
         }
@@ -156,9 +150,6 @@
         {
           "is": {
             "statusCode": 200,
-            "headers": {
-              "X-MinLimit-Remaining": "100"
-            },
             "body": ""
           }
         }
@@ -180,9 +171,6 @@
         {
           "is": {
             "statusCode": 200,
-            "headers": {
-              "X-MinLimit-Remaining": "100"
-            },
             "body": ""
           }
         }
