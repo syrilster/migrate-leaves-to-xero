@@ -87,7 +87,7 @@ func (cfg *ApplicationConfig) AuthTokenFileLocation() string {
 //NewApplicationConfig loads config values from environment and initialises config
 func NewApplicationConfig() (*ApplicationConfig, error) {
 	envValues := NewEnvironmentConfig()
-	xeroClient := xero.New(envValues.XeroEndpoint, envValues.AuthTokenFileLocation)
+	xeroClient := xero.New(envValues.XeroEndpoint, envValues.AuthTokenFileLocation, envValues.RateLimitTimeout)
 	s, err := session.NewSession(aws.NewConfig().WithRegion("ap-southeast-2"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create ses session: %v", err)

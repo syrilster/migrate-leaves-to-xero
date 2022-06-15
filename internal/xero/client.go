@@ -34,6 +34,7 @@ var (
 		Max:        time.Minute,
 		Multiplier: math.Phi,
 	}
+	defaultTimeout = 30 * time.Second
 )
 
 type ClientInterface interface {
@@ -49,8 +50,8 @@ type ClientInterface interface {
 }
 
 type BackoffWithTimeout struct {
-	*gax.Backoff
-	timeout time.Duration
+	Backoff *gax.Backoff
+	Timeout time.Duration
 }
 
 // ReusableRequest can be used when a request containing body
@@ -75,21 +76,23 @@ type client struct {
 	AuthTokenLocation string
 
 	RateLimitBackoff *gax.Backoff
+	RateLimitTimeout time.Duration
 }
 
 func NewDefaultBackoff() BackoffWithTimeout {
 	return BackoffWithTimeout{
 		Backoff: defaultRateLimitBackoff,
-		timeout: 90 * time.Second,
+		Timeout: defaultTimeout,
 	}
 }
 
-func New(endpoint string, tokenLoc string) ClientInterface {
+func New(endpoint string, tokenLoc string, timeout int) ClientInterface {
 	return &client{
 		Client:            http.DefaultClient,
 		URL:               endpoint,
 		AuthTokenLocation: tokenLoc,
 		RateLimitBackoff:  defaultRateLimitBackoff,
+		RateLimitTimeout:  time.Duration(timeout) * time.Minute,
 	}
 }
 
@@ -132,11 +135,11 @@ func getHTTPStatusCode(ctx context.Context, res *http.Response, api string) erro
 	}
 }
 
-func newRetry(ctx context.Context) (context.Context, context.CancelFunc, *gax.Backoff) {
-	bo := NewDefaultBackoff()
+func newRetry(ctx context.Context, bo *gax.Backoff, timeout time.Duration) (context.Context, context.CancelFunc, *gax.Backoff) {
+	b := BackoffWithTimeout{Backoff: bo, Timeout: timeout}
 
-	cctx, cancel := context.WithTimeout(ctx, bo.timeout)
-	return cctx, cancel, bo.Backoff
+	cctx, cancel := context.WithTimeout(ctx, b.Timeout)
+	return cctx, cancel, b.Backoff
 }
 
 func buildXeroPayrollCalendarEndpoint(url string) string {

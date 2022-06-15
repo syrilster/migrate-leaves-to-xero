@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -53,7 +54,8 @@ func (a *apiSuite) SetupSuite() {
 		//	//	return net.Dial(network, addr)
 		//	//},
 		//},
-		//Timeout: 45 * time.Second,
+		// High timeout to support the retry tests as it takes pause due to 429 error
+		Timeout: 2 * time.Minute,
 	}
 
 	a.host = defaultHost
@@ -84,8 +86,8 @@ func (a *apiSuite) Test_Success_RateLimitErrorRetryThenSuccess() {
 	a.Require().Equal(http.StatusOK, code)
 
 	latest := getHTTPRequestCount(a.T(), a.httpClient)
-	// 7 Requests because 1 * connections, 1 * Employee, 2 * PayRollCalendars, 1 * Employees/{empID}, 1 * leaveApplication
-	a.Require().Equal(6, latest-initial)
+	// 7 Requests because 1 * connections, 2 * Employee, 2 * PayRollCalendars, 2 * Employees/{empID}, 1 * leaveApplication
+	a.Require().Equal(8, latest-initial)
 }
 
 func (a *apiSuite) Test_ErrorScenario() {

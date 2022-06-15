@@ -4,25 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/googleapis/gax-go/v2"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"time"
-
-	"github.com/stretchr/testify/require"
 )
 
 var (
 	file = createTempFile("xero_session.json", []byte("{\n \"access_token\": \"e\",\n \"refresh_token\": \"cf6b89ee04bc5fa394c7b87f15439e3b3102e6fbd882ad5a0042a17ef99ba6b3\"\n}"))
 
 	defaultClient = &client{
-		URL:               "https://api.xero.com",
 		AuthTokenLocation: file.Name(),
 		RateLimitBackoff:  defaultRateLimitBackoff,
+		RateLimitTimeout:  defaultTimeout,
 	}
 )
 
@@ -105,7 +102,7 @@ func TestClient_GetPayrollCalendars(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusTooManyRequests)
 			},
-			err: errors.New("failed, retry limit expired:failed to call GetPayrollCalendars with cause 429 rate limit exceeded"),
+			err: errors.New("failed, retry limit expired: failed to call GetPayrollCalendars with cause 429 rate limit exceeded"),
 		},
 	}
 
@@ -116,11 +113,6 @@ func TestClient_GetPayrollCalendars(t *testing.T) {
 		s := httptest.NewServer(http.HandlerFunc(tt.handler))
 		tt.client.Client = s.Client()
 		tt.client.URL = s.URL
-		tt.client.RateLimitBackoff = &gax.Backoff{
-			Initial:    time.Second,
-			Max:        time.Second,
-			Multiplier: 1,
-		}
 
 		gotReq, err := tt.client.NewPayrollRequest(ctx, "123")
 		require.NoError(t, err)

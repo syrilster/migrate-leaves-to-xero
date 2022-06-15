@@ -53,7 +53,7 @@ func (c *client) NewGetEmployeesRequest(ctx context.Context, tenantID string, pa
 func (c *client) GetEmployees(ctx context.Context, req *ReusableRequest) (*EmpResponse, error) {
 	var d time.Duration
 
-	retryCtx, cancel, backOff := newRetry(ctx)
+	retryCtx, cancel, backOff := newRetry(ctx, c.RateLimitBackoff, c.RateLimitTimeout)
 	defer cancel()
 
 	for {
@@ -69,7 +69,7 @@ func (c *client) GetEmployees(ctx context.Context, req *ReusableRequest) (*EmpRe
 
 			if !errors.Is(err, nonRetryable) {
 				if innerErr := gax.Sleep(retryCtx, d); innerErr != nil {
-					return nil, errors.New(fmt.Sprint("failed, retry limit expired:", err))
+					return nil, fmt.Errorf("failed, retry limit expired: %v", err)
 				}
 				continue
 			}
@@ -139,7 +139,7 @@ func (c *client) NewEmployeeLeaveBalanceRequest(ctx context.Context, tenantID st
 func (c *client) EmployeeLeaveBalance(ctx context.Context, req *ReusableRequest) (*LeaveBalanceResponse, error) {
 	var d time.Duration
 
-	retryCtx, cancel, backOff := newRetry(ctx)
+	retryCtx, cancel, backOff := newRetry(ctx, c.RateLimitBackoff, c.RateLimitTimeout)
 	defer cancel()
 
 	for {
@@ -155,7 +155,7 @@ func (c *client) EmployeeLeaveBalance(ctx context.Context, req *ReusableRequest)
 
 			if !errors.Is(err, nonRetryable) {
 				if innerErr := gax.Sleep(retryCtx, d); innerErr != nil {
-					return nil, errors.New(fmt.Sprint("failed, retry limit expired:", err))
+					return nil, fmt.Errorf("failed, retry limit expired: %v", err)
 				}
 				continue
 			}
@@ -235,7 +235,7 @@ func (c *client) NewEmployeeLeaveApplicationRequest(ctx context.Context, tenantI
 func (c *client) EmployeeLeaveApplication(ctx context.Context, req *ReusableRequest) error {
 	var d time.Duration
 
-	retryCtx, cancel, backOff := newRetry(ctx)
+	retryCtx, cancel, backOff := newRetry(ctx, c.RateLimitBackoff, c.RateLimitTimeout)
 	defer cancel()
 
 	for {
@@ -251,7 +251,7 @@ func (c *client) EmployeeLeaveApplication(ctx context.Context, req *ReusableRequ
 
 			if !errors.Is(err, nonRetryable) {
 				if innerErr := gax.Sleep(retryCtx, d); innerErr != nil {
-					return errors.New(fmt.Sprint("failed, retry limit expired:", err))
+					return fmt.Errorf("failed, retry limit expired: %v", err)
 				}
 				continue
 			}

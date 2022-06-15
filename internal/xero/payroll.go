@@ -41,7 +41,7 @@ func (c *client) NewPayrollRequest(ctx context.Context, tenantID string) (*Reusa
 func (c *client) GetPayrollCalendars(ctx context.Context, req *ReusableRequest) (*PayrollCalendarResponse, error) {
 	var d time.Duration
 
-	retryCtx, cancel, backOff := newRetry(ctx)
+	retryCtx, cancel, backOff := newRetry(ctx, c.RateLimitBackoff, c.RateLimitTimeout)
 	defer cancel()
 
 	for {
@@ -57,7 +57,7 @@ func (c *client) GetPayrollCalendars(ctx context.Context, req *ReusableRequest) 
 
 			if !errors.Is(err, nonRetryable) {
 				if innerErr := gax.Sleep(retryCtx, d); innerErr != nil {
-					return nil, errors.New(fmt.Sprint("failed, retry limit expired:", err))
+					return nil, fmt.Errorf("failed, retry limit expired: %v", err)
 				}
 				continue
 			}
