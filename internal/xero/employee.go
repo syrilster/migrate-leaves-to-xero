@@ -179,8 +179,8 @@ func (c *client) employeeLeaveBalance(ctx context.Context, req *http.Request) (*
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("error reading EmployeeLeaveBalance resp body (%s)", body)
-		return nil, fmt.Errorf("error reading EmployeeLeaveBalance resp body. cause: %v %w", err, nonRetryable)
+		contextLogger.WithError(err).Errorf("error reading GetEmployeeLeaveBalance resp body (%s)", body)
+		return nil, fmt.Errorf("error reading GetEmployeeLeaveBalance resp body. cause: %v %w", err, nonRetryable)
 	}
 
 	defer func() {
@@ -191,8 +191,8 @@ func (c *client) employeeLeaveBalance(ctx context.Context, req *http.Request) (*
 
 	response := &LeaveBalanceResponse{}
 	if err := json.Unmarshal(body, response); err != nil {
-		contextLogger.WithError(err).Errorf("there was an error un marshalling the EmployeeLeaveBalance resp. %v", err)
-		return nil, fmt.Errorf("there was an error un marshalling the EmployeeLeaveBalance resp. cause: %v %w", err, nonRetryable)
+		contextLogger.WithError(err).Errorf("there was an error un marshalling the GetEmployeeLeaveBalance resp. %v", err)
+		return nil, fmt.Errorf("there was an error un marshalling the GetEmployeeLeaveBalance resp. cause: %v %w", err, nonRetryable)
 	}
 
 	return response, nil

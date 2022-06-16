@@ -4,117 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/stretchr/testify/require"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetEmployees(t *testing.T) {
 
-	tests := []struct {
-		name    string
-		client  *client
-		want    *EmpResponse
-		handler func(w http.ResponseWriter, r *http.Request)
-		err     error
-	}{
-		{
-			name:   "200-success",
-			client: defaultClient,
-			want: &EmpResponse{
-				Employees: []Employee{
-					{
-						EmployeeID:        "123456",
-						FirstName:         "Syril",
-						LastName:          "Sadasivan",
-						Status:            "Active",
-						PayrollCalendarID: "4567891011",
-					},
-				},
-			},
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				require.Equal(t, "/payroll.xro/1.0/Employees?page=1", r.RequestURI)
-				_, err := ioutil.ReadAll(r.Body)
-				require.NoError(t, err)
-
-				res := EmpResponse{
-					Employees: []Employee{
-						{
-							EmployeeID:        "123456",
-							FirstName:         "Syril",
-							LastName:          "Sadasivan",
-							Status:            "Active",
-							PayrollCalendarID: "4567891011",
-						},
-					},
-				}
-				c, err := json.Marshal(res)
-				require.NoError(t, err)
-
-				_, err = w.Write(c)
-				require.NoError(t, err)
+	tests := getTestCases[EmpResponse](t, &EmpResponse{
+		Employees: []Employee{
+			{
+				EmployeeID:        "123456",
+				FirstName:         "John",
+				LastName:          "Coholan",
+				Status:            "Active",
+				PayrollCalendarID: "4567891011",
 			},
 		},
-		{
-			name:   "Error-ReadingRespData",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				require.Equal(t, "/payroll.xro/1.0/Employees?page=1", r.RequestURI)
-				_, err := ioutil.ReadAll(r.Body)
-				require.NoError(t, err)
-
-				res := "™™¡¡¡¡ß"
-				c, err := json.Marshal(res)
-				require.NoError(t, err)
-
-				_, err = w.Write(c)
-				require.NoError(t, err)
-			},
-			err: errors.New("there was an error un marshalling the GetEmployees resp. cause: json: cannot unmarshal string into Go value of type xero.EmpResponse non retryable"),
-		},
-		{
-			name:   "401-Unauthorized",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusUnauthorized)
-			},
-			err: errors.New("failed to call GetEmployees with cause 401 unauthorized"),
-		},
-		{
-			name:   "403-Forbidden",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusForbidden)
-			},
-			err: errors.New("failed to call GetEmployees with cause 403 unauthorized"),
-		},
-		{
-			name:   "400-BadRequest",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusBadRequest)
-			},
-			err: errors.New("failed to call GetEmployees with cause 400 non retryable"),
-		},
-		{
-			name:   "503-Unavailable",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusServiceUnavailable)
-			},
-			err: errors.New("failed to call GetEmployees with cause 503 non retryable"),
-		},
-		{
-			name:   "429-RateLimit",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusTooManyRequests)
-			},
-			err: errors.New("failed, retry limit expired: failed to call GetEmployees with cause 429 rate limit exceeded"),
-		},
-	}
+	}, "/payroll.xro/1.0/Employees?page=1", "GetEmployees")
 
 	for _, test := range tests {
 		tt := test
@@ -129,7 +40,7 @@ func TestGetEmployees(t *testing.T) {
 
 		got, err := tt.client.GetEmployees(ctx, gotReq)
 		if err != nil || tt.err != nil {
-			require.EqualError(t, err, tt.err.Error())
+			require.ErrorContains(t, err, tt.err.Error())
 		} else {
 			require.Equal(t, tt.want, got)
 		}
@@ -138,108 +49,17 @@ func TestGetEmployees(t *testing.T) {
 
 func TestEmployeeLeaveBalance(t *testing.T) {
 
-	tests := []struct {
-		name    string
-		client  *client
-		want    *LeaveBalanceResponse
-		handler func(w http.ResponseWriter, r *http.Request)
-		err     error
-	}{
-		{
-			name:   "200-success",
-			client: defaultClient,
-			want: &LeaveBalanceResponse{
-				Employees: []Employee{
-					{
-						EmployeeID:        "123456",
-						FirstName:         "Syril",
-						LastName:          "Sadasivan",
-						Status:            "Active",
-						PayrollCalendarID: "4567891011",
-					},
-				},
-			},
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				require.Equal(t, "/payroll.xro/1.0/Employees/1", r.RequestURI)
-				_, err := ioutil.ReadAll(r.Body)
-				require.NoError(t, err)
-
-				res := EmpResponse{
-					Employees: []Employee{
-						{
-							EmployeeID:        "123456",
-							FirstName:         "Syril",
-							LastName:          "Sadasivan",
-							Status:            "Active",
-							PayrollCalendarID: "4567891011",
-						},
-					},
-				}
-				c, err := json.Marshal(res)
-				require.NoError(t, err)
-
-				_, err = w.Write(c)
-				require.NoError(t, err)
+	tests := getTestCases[LeaveBalanceResponse](t, &LeaveBalanceResponse{
+		Employees: []Employee{
+			{
+				EmployeeID:        "123456",
+				FirstName:         "John",
+				LastName:          "Coholan",
+				Status:            "Active",
+				PayrollCalendarID: "4567891011",
 			},
 		},
-		{
-			name:   "Error-ReadingRespData",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				require.Equal(t, "/payroll.xro/1.0/Employees/1", r.RequestURI)
-				_, err := ioutil.ReadAll(r.Body)
-				require.NoError(t, err)
-
-				res := "™™¡¡¡¡ß"
-				c, err := json.Marshal(res)
-				require.NoError(t, err)
-
-				_, err = w.Write(c)
-				require.NoError(t, err)
-			},
-			err: errors.New("there was an error un marshalling the EmployeeLeaveBalance resp. cause: json: cannot unmarshal string into Go value of type xero.LeaveBalanceResponse non retryable"),
-		},
-		{
-			name:   "401-Unauthorized",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusUnauthorized)
-			},
-			err: errors.New("failed to call GetEmployeeLeaveBalance with cause 401 unauthorized"),
-		},
-		{
-			name:   "403-Forbidden",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusForbidden)
-			},
-			err: errors.New("failed to call GetEmployeeLeaveBalance with cause 403 unauthorized"),
-		},
-		{
-			name:   "400-BadRequest",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusBadRequest)
-			},
-			err: errors.New("failed to call GetEmployeeLeaveBalance with cause 400 non retryable"),
-		},
-		{
-			name:   "503-Unavailable",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusServiceUnavailable)
-			},
-			err: errors.New("failed to call GetEmployeeLeaveBalance with cause 503 non retryable"),
-		},
-		{
-			name:   "429-RateLimit",
-			client: defaultClient,
-			handler: func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusTooManyRequests)
-			},
-			err: errors.New("failed, retry limit expired: failed to call GetEmployeeLeaveBalance with cause 429 rate limit exceeded"),
-		},
-	}
+	}, "/payroll.xro/1.0/Employees/1", "GetEmployeeLeaveBalance")
 
 	for _, test := range tests {
 		tt := test
@@ -254,7 +74,7 @@ func TestEmployeeLeaveBalance(t *testing.T) {
 
 		got, err := tt.client.EmployeeLeaveBalance(ctx, gotReq)
 		if err != nil || tt.err != nil {
-			require.EqualError(t, err, tt.err.Error())
+			require.ErrorContains(t, err, tt.err.Error())
 		} else {
 			require.Equal(t, tt.want, got)
 		}
@@ -262,11 +82,9 @@ func TestEmployeeLeaveBalance(t *testing.T) {
 }
 
 func TestEmployeeLeaveApplication(t *testing.T) {
-
 	tests := []struct {
 		name    string
 		client  *client
-		want    *LeaveBalanceResponse
 		handler func(w http.ResponseWriter, r *http.Request)
 		err     error
 	}{
@@ -341,9 +159,102 @@ func TestEmployeeLeaveApplication(t *testing.T) {
 
 		err = tt.client.EmployeeLeaveApplication(ctx, gotReq)
 		if err != nil || tt.err != nil {
-			require.EqualError(t, err, tt.err.Error())
+			require.ErrorContains(t, err, tt.err.Error())
 		} else {
 			require.NoError(t, err)
 		}
 	}
+}
+
+func getTestCases[T interface{}](t *testing.T, mockRes *T, expectedInputURL string, apiName string) []struct {
+	name    string
+	client  *client
+	want    *T
+	handler func(w http.ResponseWriter, r *http.Request)
+	err     error
+} {
+	tests := []struct {
+		name    string
+		client  *client
+		want    *T
+		handler func(w http.ResponseWriter, r *http.Request)
+		err     error
+	}{
+		{
+			name:   "200-success",
+			client: defaultClient,
+			want:   mockRes,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, expectedInputURL, r.RequestURI)
+				_, err := ioutil.ReadAll(r.Body)
+				require.NoError(t, err)
+
+				res := mockRes
+				c, err := json.Marshal(res)
+				require.NoError(t, err)
+
+				_, err = w.Write(c)
+				require.NoError(t, err)
+			},
+		},
+		{
+			name:   "Error-ReadingRespData",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, expectedInputURL, r.RequestURI)
+				_, err := ioutil.ReadAll(r.Body)
+				require.NoError(t, err)
+
+				res := "™™¡¡¡¡ß"
+				c, err := json.Marshal(res)
+				require.NoError(t, err)
+
+				_, err = w.Write(c)
+				require.NoError(t, err)
+			},
+			err: fmt.Errorf("there was an error un marshalling the %s resp. cause: json: cannot unmarshal string into Go value", apiName),
+		},
+		{
+			name:   "401-Unauthorized",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusUnauthorized)
+			},
+			err: fmt.Errorf("failed to call %s with cause 401 unauthorized", apiName),
+		},
+		{
+			name:   "403-Forbidden",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusForbidden)
+			},
+			err: fmt.Errorf("failed to call %s with cause 403 unauthorized", apiName),
+		},
+		{
+			name:   "400-BadRequest",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusBadRequest)
+			},
+			err: fmt.Errorf("failed to call %s with cause 400 non retryable", apiName),
+		},
+		{
+			name:   "503-Unavailable",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusServiceUnavailable)
+			},
+			err: fmt.Errorf("failed to call %s with cause 503 non retryable", apiName),
+		},
+		{
+			name:   "429-RateLimit",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusTooManyRequests)
+			},
+			err: fmt.Errorf("failed, retry limit expired: failed to call %s with cause 429 rate limit exceeded", apiName),
+		},
+	}
+
+	return tests
 }

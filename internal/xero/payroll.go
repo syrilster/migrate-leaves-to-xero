@@ -82,8 +82,8 @@ func (c *client) getPayrollCalendars(ctx context.Context, req *http.Request) (*P
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("error reading xero API data resp body (%s)", body)
-		return nil, fmt.Errorf("error reading xero API data resp body. cause: %v %w", err, nonRetryable)
+		contextLogger.WithError(err).Errorf("error reading GetPayrollCalendars resp body (%s)", body)
+		return nil, fmt.Errorf("error reading GetPayrollCalendars resp body. cause: %v %w", err, nonRetryable)
 	}
 
 	defer func() {
@@ -94,8 +94,8 @@ func (c *client) getPayrollCalendars(ctx context.Context, req *http.Request) (*P
 
 	response := &PayrollCalendarResponse{}
 	if err := json.Unmarshal(body, response); err != nil {
-		contextLogger.WithError(err).Errorf("there was an error un marshalling the xero API resp. %v", err)
-		return nil, fmt.Errorf("there was an error un marshalling the xero API resp. cause: %v %w", err, nonRetryable)
+		contextLogger.WithError(err).Errorf("there was an error un marshalling the GetPayrollCalendars resp. %v", err)
+		return nil, fmt.Errorf("there was an error un marshalling the GetPayrollCalendars resp. cause: %v %w", err, nonRetryable)
 	}
 
 	return response, nil

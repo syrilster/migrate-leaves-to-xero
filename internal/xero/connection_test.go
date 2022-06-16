@@ -12,7 +12,6 @@ import (
 )
 
 func TestGetConnections(t *testing.T) {
-
 	tests := []struct {
 		name    string
 		client  *client
