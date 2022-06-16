@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func Test_GetEmployees(t *testing.T) {
+func TestGetEmployees(t *testing.T) {
 
 	tests := []struct {
 		name    string
@@ -136,7 +136,7 @@ func Test_GetEmployees(t *testing.T) {
 	}
 }
 
-func Test_EmployeeLeaveBalance(t *testing.T) {
+func TestEmployeeLeaveBalance(t *testing.T) {
 
 	tests := []struct {
 		name    string
@@ -261,7 +261,7 @@ func Test_EmployeeLeaveBalance(t *testing.T) {
 	}
 }
 
-func Test_EmployeeLeaveApplication(t *testing.T) {
+func TestEmployeeLeaveApplication(t *testing.T) {
 
 	tests := []struct {
 		name    string
