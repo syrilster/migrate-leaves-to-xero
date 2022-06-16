@@ -83,7 +83,7 @@ func (c *client) getEmployees(ctx context.Context, req *http.Request) (*EmpRespo
 	contextLogger := log.WithContext(ctx)
 	res, err := c.Do(req)
 	if err != nil {
-		return nil, errors.New(fmt.Sprint(fmt.Sprintf("failed to execute %s request ", empApiName), err))
+		return nil, fmt.Errorf("failed to execute %s request. Cause %v, %w", empApiName, err, nonRetryable)
 	}
 
 	err = getHTTPStatusCode(ctx, res, empApiName)
@@ -93,8 +93,8 @@ func (c *client) getEmployees(ctx context.Context, req *http.Request) (*EmpRespo
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("error reading xero API data resp body (%s)", body)
-		return nil, err
+		contextLogger.WithError(err).Errorf("error reading GetEmployees resp body (%s)", body)
+		return nil, fmt.Errorf("error reading GetEmployees resp body. cause: %v %w", err, nonRetryable)
 	}
 
 	defer func() {
@@ -105,8 +105,8 @@ func (c *client) getEmployees(ctx context.Context, req *http.Request) (*EmpRespo
 
 	response := &EmpResponse{}
 	if err := json.Unmarshal(body, response); err != nil {
-		contextLogger.WithError(err).Errorf("there was an error un marshalling the xero API resp. %v", err)
-		return nil, err
+		contextLogger.WithError(err).Errorf("there was an error un marshalling the GetEmployees resp. %v", err)
+		return nil, fmt.Errorf("there was an error un marshalling the GetEmployees resp. cause: %v %w", err, nonRetryable)
 	}
 
 	return response, nil
@@ -169,7 +169,7 @@ func (c *client) employeeLeaveBalance(ctx context.Context, req *http.Request) (*
 	contextLogger := log.WithContext(ctx)
 	res, err := c.Do(req)
 	if err != nil {
-		return nil, errors.New(fmt.Sprint(fmt.Sprintf("failed to execute %s request ", empLeaveBalanceApiName), err))
+		return nil, fmt.Errorf("failed to execute %s request. Cause %v, %w", empLeaveBalanceApiName, err, nonRetryable)
 	}
 
 	err = getHTTPStatusCode(ctx, res, empLeaveBalanceApiName)
@@ -179,8 +179,8 @@ func (c *client) employeeLeaveBalance(ctx context.Context, req *http.Request) (*
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("error reading xero API data resp body (%s)", body)
-		return nil, err
+		contextLogger.WithError(err).Errorf("error reading EmployeeLeaveBalance resp body (%s)", body)
+		return nil, fmt.Errorf("error reading EmployeeLeaveBalance resp body. cause: %v %w", err, nonRetryable)
 	}
 
 	defer func() {
@@ -191,8 +191,8 @@ func (c *client) employeeLeaveBalance(ctx context.Context, req *http.Request) (*
 
 	response := &LeaveBalanceResponse{}
 	if err := json.Unmarshal(body, response); err != nil {
-		contextLogger.WithError(err).Errorf("there was an error un marshalling the xero API resp. %v", err)
-		return nil, err
+		contextLogger.WithError(err).Errorf("there was an error un marshalling the EmployeeLeaveBalance resp. %v", err)
+		return nil, fmt.Errorf("there was an error un marshalling the EmployeeLeaveBalance resp. cause: %v %w", err, nonRetryable)
 	}
 
 	return response, nil
@@ -265,7 +265,7 @@ func (c *client) EmployeeLeaveApplication(ctx context.Context, req *ReusableRequ
 func (c *client) employeeLeaveApplication(ctx context.Context, req *http.Request) error {
 	res, err := c.Do(req)
 	if err != nil {
-		return errors.New(fmt.Sprint(fmt.Sprintf("failed to execute %s request ", empLeaveApplicationApiName), err))
+		return fmt.Errorf("failed to execute %s request. Cause %v, %w", empLeaveApplicationApiName, err, nonRetryable)
 	}
 
 	err = getHTTPStatusCode(ctx, res, empLeaveApplicationApiName)

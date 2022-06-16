@@ -34,7 +34,7 @@ var (
 		Max:        time.Minute,
 		Multiplier: math.Phi,
 	}
-	defaultTimeout = 30 * time.Second
+	defaultTimeout = 15 * time.Second
 )
 
 type ClientInterface interface {

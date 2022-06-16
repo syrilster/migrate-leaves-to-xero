@@ -1,9 +1,8 @@
 package xero
 
 type EmpResponse struct {
-	Status             string     `json:"Status"`
-	Employees          []Employee `json:"Employees"`
-	RateLimitRemaining int
+	Status    string     `json:"Status"`
+	Employees []Employee `json:"Employees"`
 }
 
 type ConnectionResp struct {
@@ -26,8 +25,7 @@ type Connection struct {
 }
 
 type LeaveBalanceResponse struct {
-	Employees          []Employee `json:"Employees"`
-	RateLimitRemaining int
+	Employees []Employee `json:"Employees"`
 }
 
 type LeaveBalance struct {

@@ -27,8 +27,9 @@ func (c *client) NewPayrollRequest(ctx context.Context, tenantID string) (*Reusa
 
 	accessToken, err := c.getAccessToken(ctx)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("Error fetching the access token")
-		return nil, err
+		msg := "error fetching the access token. Cause %v"
+		contextLogger.WithError(err).Errorf(msg, err)
+		return nil, fmt.Errorf(msg, err)
 	}
 
 	req.Header.Set("Authorization", "Bearer "+accessToken)
@@ -71,7 +72,7 @@ func (c *client) getPayrollCalendars(ctx context.Context, req *http.Request) (*P
 	contextLogger := log.WithContext(ctx)
 	res, err := c.Do(req)
 	if err != nil {
-		return nil, errors.New(fmt.Sprint(fmt.Sprintf("failed to execute %s request ", payrollApiName), err))
+		return nil, fmt.Errorf("failed to execute %s request. Cause %v, %w", payrollApiName, err, nonRetryable)
 	}
 
 	err = getHTTPStatusCode(ctx, res, payrollApiName)
@@ -82,7 +83,7 @@ func (c *client) getPayrollCalendars(ctx context.Context, req *http.Request) (*P
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		contextLogger.WithError(err).Errorf("error reading xero API data resp body (%s)", body)
-		return nil, err
+		return nil, fmt.Errorf("error reading xero API data resp body. cause: %v %w", err, nonRetryable)
 	}
 
 	defer func() {
@@ -94,7 +95,7 @@ func (c *client) getPayrollCalendars(ctx context.Context, req *http.Request) (*P
 	response := &PayrollCalendarResponse{}
 	if err := json.Unmarshal(body, response); err != nil {
 		contextLogger.WithError(err).Errorf("there was an error un marshalling the xero API resp. %v", err)
-		return nil, err
+		return nil, fmt.Errorf("there was an error un marshalling the xero API resp. cause: %v %w", err, nonRetryable)
 	}
 
 	return response, nil

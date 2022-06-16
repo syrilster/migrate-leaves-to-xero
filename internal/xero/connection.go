@@ -20,9 +20,11 @@ func (c *client) GetConnections(ctx context.Context) ([]Connection, error) {
 
 	accessToken, err := c.getAccessToken(ctx)
 	if err != nil {
-		contextLogger.WithError(err).Errorf("Error fetching the access token")
-		return nil, err
+		msg := "error fetching the access token. %v"
+		contextLogger.WithError(err).Errorf(msg, err)
+		return nil, fmt.Errorf(msg, err)
 	}
+
 	httpRequest.Header.Set("Authorization", "Bearer "+accessToken)
 
 	resp, err := c.Client.Do(httpRequest)
@@ -37,21 +39,22 @@ func (c *client) GetConnections(ctx context.Context) ([]Connection, error) {
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		contextLogger.Infof("status returned from xero service %s ", resp.Status)
-		return nil, fmt.Errorf("xero service (GetConnections) returned status: %s ", resp.Status)
+	err = getHTTPStatusCode(ctx, resp, "GetConnections")
+	if err != nil {
+		return nil, err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		contextLogger.WithError(err).Errorf("error reading xero API data resp body (%s)", body)
-		return nil, err
+		return nil, fmt.Errorf("error reading xero API data. Error: %v", err)
 	}
 
 	var response []Connection
 	if err := json.Unmarshal(body, &response); err != nil {
-		contextLogger.WithError(err).Errorf("there was an error un marshalling the xero API resp. %v", err)
-		return nil, err
+		msg := "there was an error un marshalling the xero API resp. %v"
+		contextLogger.WithError(err).Errorf(msg, err)
+		return nil, fmt.Errorf(msg, err)
 	}
 
 	return response, nil

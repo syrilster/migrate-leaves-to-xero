@@ -23,7 +23,7 @@ var (
 	}
 )
 
-func TestClient_GetPayrollCalendars(t *testing.T) {
+func Test_GetPayrollCalendars(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -64,6 +64,28 @@ func TestClient_GetPayrollCalendars(t *testing.T) {
 				require.NoError(t, err)
 			},
 		},
+		{
+			name:   "Error-ReadingRespData",
+			client: defaultClient,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, "/payroll.xro/1.0/PayrollCalendars", r.RequestURI)
+				_, err := ioutil.ReadAll(r.Body)
+				require.NoError(t, err)
+
+				res := "™™¡¡¡¡ß"
+				c, err := json.Marshal(res)
+				require.NoError(t, err)
+
+				_, err = w.Write(c)
+				require.NoError(t, err)
+			},
+			err: errors.New("there was an error un marshalling the xero API resp. cause: json: cannot unmarshal string into Go value of type xero.PayrollCalendarResponse non retryable"),
+		},
+		//{
+		//	name:           "Error-ReadingAuthToken",
+		//	client:         &client{},
+		//	err:            errors.New("error fetching the access token. Cause open : no such file or directory"),
+		//},
 		{
 			name:   "401-Unauthorized",
 			client: defaultClient,
