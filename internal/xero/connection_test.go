@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func Test_GetConnections(t *testing.T) {
+func TestGetConnections(t *testing.T) {
 
 	tests := []struct {
 		name    string

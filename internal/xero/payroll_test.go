@@ -23,7 +23,7 @@ var (
 	}
 )
 
-func Test_GetPayrollCalendars(t *testing.T) {
+func TestGetPayrollCalendars(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
