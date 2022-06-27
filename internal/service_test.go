@@ -5,9 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ses"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -15,10 +12,16 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ses"
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/xero"
 )
+
+const testURL = "http://dummy"
 
 type MockXeroClient struct {
 	mock.Mock
@@ -109,7 +112,7 @@ func TestLeaveMigration(t *testing.T) {
 
 	leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees}
 
-	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", "http://dummy", "testEndpoint"), nil)
+	r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", testURL, "testEndpoint"), nil)
 	require.NoError(t, err)
 	mockRequest := &xero.ReusableRequest{Request: r}
 	mockClient := new(MockXeroClient)
@@ -205,11 +208,11 @@ func TestLeaveMigration(t *testing.T) {
 		}
 
 		leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees}
-		r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", "http://dummy", "testEndpoint"), nil)
+		r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", testURL, "testEndpoint"), nil)
 		require.NoError(t, err)
 		mockReqPageOne := &xero.ReusableRequest{Request: r}
 
-		rp, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", "http://dummy", "testEndpointPage2"), nil)
+		rp, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", testURL, "testEndpointPage2"), nil)
 		require.NoError(t, err)
 		mockReqPageTwo := &xero.ReusableRequest{Request: rp}
 
@@ -245,11 +248,11 @@ func TestLeaveMigration(t *testing.T) {
 		}
 
 		leaveBalResp := &xero.LeaveBalanceResponse{Employees: empResp.Employees}
-		r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", "http://dummy", "testEndpoint"), nil)
+		r, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", testURL, "testEndpoint"), nil)
 		require.NoError(t, err)
 		mockReqPageOne := &xero.ReusableRequest{Request: r}
 
-		rp, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", "http://dummy", "testEndpointPage2"), nil)
+		rp, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%s", testURL, "testEndpointPage2"), nil)
 		require.NoError(t, err)
 		mockReqPageTwo := &xero.ReusableRequest{Request: rp}
 
