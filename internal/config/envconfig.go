@@ -21,6 +21,7 @@ type envConfig struct {
 	EmailTo                string
 	EmailFrom              string
 	AuthTokenFileLocation  string
+	RateLimitTimeout       int
 }
 
 func NewEnvironmentConfig() *envConfig {
@@ -40,6 +41,7 @@ func NewEnvironmentConfig() *envConfig {
 		AuthErrorRedirectURL:   getEnvString("AUTH_ERROR_REDIRECT_URL", ""),
 		EmailTo:                getEnvString("EMAIL_TO", ""),
 		EmailFrom:              getEnvString("EMAIL_FROM", ""),
+		RateLimitTimeout:       getEnvInt("RATE_LIMIT_TIMEOUT", 1),
 	}
 }
 
@@ -54,7 +56,7 @@ func getEnvString(key string, defaultVal string) string {
 
 // helper function to read an environment or return a default value
 func getEnvInt(key string, defaultVal int) int {
-	val, err := strconv.Atoi(getEnvString(key, ""))
+	val, err := strconv.Atoi(getEnvString(key, strconv.Itoa(defaultVal)))
 	if err == nil {
 		return val
 	}

@@ -7,16 +7,16 @@ import (
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/config"
 )
 
-// init is invoked before main()
-func init() {
-	// loads values from .env into the system
+func main() {
+	// load values from .env into the system
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
 	}
-}
 
-func main() {
-	cfg := config.NewApplicationConfig()
+	cfg, err := config.NewApplicationConfig()
+	if err != nil {
+		log.Fatalf("failed to start application: %v", err)
+	}
 	server := internal.SetupServer(cfg)
 	server.Start("", cfg.ServerPort())
 }

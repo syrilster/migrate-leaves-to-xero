@@ -22,7 +22,8 @@ push:
 	docker push ${APP}
 
 test:
-	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox) 2>&1 | tee test-output.txt
+	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox) -coverprofile coverage.out -covermode count
+	go tool cover -func coverage.out
 
 sonar:
 	mkdir -p gen

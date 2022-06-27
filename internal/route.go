@@ -2,8 +2,9 @@ package internal
 
 import (
 	"context"
-	"github.com/syrilster/migrate-leave-krow-to-xero/internal/config"
 	"net/http"
+
+	"github.com/syrilster/migrate-leave-krow-to-xero/internal/config"
 )
 
 type XeroAPIHandler interface {

@@ -31,6 +31,5 @@ func OauthRedirectHandler(handler OAuthHandler) func(w http.ResponseWriter, r *h
 		}
 
 		http.Redirect(w, r, envValues.AuthSuccessRedirectURL, http.StatusSeeOther)
-		return
 	}
 }

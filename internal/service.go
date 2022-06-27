@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/ses"
 	"gopkg.in/gomail.v2"
 	"math"
 	"strconv"
@@ -14,13 +12,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ses"
 	log "github.com/sirupsen/logrus"
+	"github.com/xuri/excelize/v2"
+
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/model"
 	"github.com/syrilster/migrate-leave-krow-to-xero/internal/xero"
-	"github.com/xuri/excelize/v2"
 )
-
-var minRateLimit = 60
 
 const (
 	unPaidLeave        string = "Other Unpaid Leave"
@@ -110,12 +109,6 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 	}
 
 	for _, leaveReq := range leaveRequests {
-		//To avoid Xero Minute Limit: 60 calls per minute
-		if minRateLimit < 5 {
-			ctxLogger.Info("Pausing the APP run due to less rate limit. Remaining: ", minRateLimit)
-			time.Sleep(60 * time.Second)
-		}
-
 		if _, ok := connectionsMap[leaveReq.OrgName]; !ok {
 			errStr := fmt.Errorf("Failed to get Organization details from Xero. Organization: %v. ", leaveReq.OrgName)
 			ctxLogger.Infof(errStr.Error())
@@ -136,7 +129,15 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 		}
 
 		if !containsString(payrollCalCacheList, tenantID) {
-			payCalendarResp, err := service.client.GetPayrollCalendars(ctx, tenantID)
+			req, err := service.client.NewPayrollRequest(ctx, tenantID)
+			if err != nil {
+				errStr := fmt.Errorf("failed to build NewPayrollRequest. Cause %v", err.Error())
+				ctxLogger.Infof(err.Error(), err)
+				errStrings = append(errStrings, errStr)
+				continue
+			}
+
+			payCalendarResp, err := service.client.GetPayrollCalendars(ctx, req)
 			if err != nil {
 				errStr := fmt.Errorf("Failed to fetch employee payroll calendar settings from Xero. Organization: %v. Please reupload entry for this ORG. ", leaveReq.OrgName)
 				ctxLogger.Infof(err.Error(), err)
@@ -144,7 +145,6 @@ func (service Service) MigrateLeaveKrowToXero(ctx context.Context) []string {
 				continue
 			}
 
-			minRateLimit = payCalendarResp.RateLimitRemaining
 			//Populate the payroll settings to a map
 			for _, p := range payCalendarResp.PayrollCalendars {
 				payrollCalendarMap[p.PayrollCalendarID] = p.PaymentDate
@@ -191,25 +191,33 @@ func (service Service) populateEmployeesMap(ctx context.Context, xeroEmployeesMa
 	emptyMap := make(map[string]xero.Employee)
 	var errResult []string
 
-	empResponse, err := service.client.GetEmployees(ctx, tenantID, strconv.Itoa(page))
+	req, err := service.client.NewGetEmployeesRequest(ctx, tenantID, strconv.Itoa(page))
+	if err != nil {
+		errStr := fmt.Errorf("failed to build NewGetEmployeesRequest. Cause %v", err.Error())
+		ctxLogger.Infof(err.Error(), err)
+		errResult = append(errResult, errStr.Error())
+		return emptyMap, errResult
+	}
+
+	empResponse, err := service.client.GetEmployees(ctx, req)
 	if err != nil {
 		errStr := fmt.Errorf("Failed to fetch employees from Xero. Organization: %v. ", orgName)
 		ctxLogger.Infof(err.Error(), err)
 		errResult = append(errResult, errStr.Error())
 		return emptyMap, errResult
 	}
-	minRateLimit = empResponse.RateLimitRemaining
+
 	//populate the employees to a map
 	for _, emp := range empResponse.Employees {
 		xeroEmployeesMap[emp.FirstName+" "+emp.LastName] = emp
 	}
 
-	//Recursive call to get next page
+	// Recursive call to get next page
+	//TODO: Fix this. Errors won't be returned correctly in the recursive calls
 	if len(empResponse.Employees) > 99 {
 		var errs []string
 		xeroEmployeesMap, errs = service.populateEmployeesMap(ctx, xeroEmployeesMap, tenantID, orgName, page+1)
 		if errs != nil {
-			errResult = errs
 			return emptyMap, errs
 		}
 	}
@@ -236,6 +244,7 @@ func (service Service) processLeaveRequestByEmp(ctx context.Context, xeroEmploye
 		ctxLogger.Infof(errStr.Error())
 		return errStr
 	}
+
 	empID := xeroEmployeesMap[leaveReq.EmpName].EmployeeID
 	payCalendarID := xeroEmployeesMap[leaveReq.EmpName].PayrollCalendarID
 	if _, ok := payrollCalendarMap[payCalendarID]; !ok {
@@ -243,8 +252,8 @@ func (service Service) processLeaveRequestByEmp(ctx context.Context, xeroEmploye
 		ctxLogger.Infof(errStr.Error())
 		return errStr
 	}
-	paymentDate := payrollCalendarMap[payCalendarID]
 
+	paymentDate := payrollCalendarMap[payCalendarID]
 	err := service.reconcileLeaveRequestAndApply(ctx, empID, tenantID, leaveReq, paymentDate, resChan, wg)
 	return err
 }
@@ -268,14 +277,20 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	skipUnpaidLeave = strings.EqualFold(leaveReq.LeaveType, compassionateLeave) || strings.EqualFold(leaveReq.LeaveType, juryDutyLeave)
 
 	//Just to make sure that the previous leave request if any has been completed and we get the updated balance.
-	time.Sleep(200 * time.Millisecond)
-	leaveBalance, err := service.client.EmployeeLeaveBalance(ctx, tenantID, empID)
+	time.Sleep(1 * time.Second)
+	req, err := service.client.NewEmployeeLeaveBalanceRequest(ctx, tenantID, empID)
+	if err != nil {
+		errStr := fmt.Errorf("failed to build NewEmployeeLeaveBalanceRequest. Cause %v", err.Error())
+		ctxLogger.Infof(err.Error(), err)
+		return errStr
+	}
+
+	leaveBalance, err := service.client.EmployeeLeaveBalance(ctx, req)
 	if err != nil {
 		errStr := fmt.Errorf("Failed to fetch employee leave balance from Xero. Employee: %v. Organization: %v ", leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error(), err)
 		return errStr
 	}
-	minRateLimit = leaveBalance.RateLimitRemaining
 
 	for _, leaveBal := range leaveBalance.Employees[0].LeaveBalance {
 		leaveBalanceMap[leaveBal.LeaveType] = leaveBal
@@ -287,7 +302,6 @@ func (service Service) reconcileLeaveRequestAndApply(ctx context.Context, empID 
 	if _, ok := leaveBalanceMap[leaveReq.LeaveType]; !ok {
 		errStr := fmt.Errorf("Leave type %v not found/configured in Xero for Employee: %v. Organization: %v ", leaveReq.LeaveType, leaveReq.EmpName, leaveReq.OrgName)
 		ctxLogger.Infof(errStr.Error())
-		errorsStr = append(errorsStr, errStr.Error())
 		return errStr
 	}
 
@@ -412,13 +426,23 @@ func (service Service) applyLeaveRequestToXero(ctx context.Context, tenantID str
 		wg.Done()
 	}()
 
-	err := service.client.EmployeeLeaveApplication(ctx, tenantID, leaveApplication)
+	req, err := service.client.NewEmployeeLeaveApplicationRequest(ctx, tenantID, leaveApplication)
 	if err != nil {
-		ctxLogger.Infof("Leave Application Request: %v", leaveApplication)
-		ctxLogger.WithError(err).Errorf("Failed to post Leave application to xero for Employee: %v Organization: %v", empName, orgName)
+		errStr := fmt.Errorf("failed to build NewEmployeeLeaveApplicationRequest. Cause %v", err.Error())
+		ctxLogger.WithError(err).Errorf(errStr.Error())
 		resChan <- fmt.Sprintf("Error: Failed to post Leave application to xero for Employee: %v Organization: %v ", empName, orgName)
 		return
 	}
+
+	err = service.client.EmployeeLeaveApplication(ctx, req)
+	if err != nil {
+		errStr := fmt.Errorf("Error: Failed to post Leave application to xero for Employee: %v Organization: %v. Cause %v ", empName, orgName, err.Error())
+		ctxLogger.Infof("Leave Application Request: %v", leaveApplication)
+		ctxLogger.WithError(err).Errorf(errStr.Error())
+		resChan <- fmt.Sprint(errStr.Error())
+		return
+	}
+
 	resChan <- fmt.Sprintf("%v,%v,%v,%v,%v,%v",
 		empName, originalLeaveType, appliedLeaveType, leaveDate, leaveApplication.LeavePeriods[0].NumberOfUnits, orgName)
 }
@@ -437,6 +461,13 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 
 	ctxLogger.Info("SheetName: ", f.GetSheetName(f.GetActiveSheetIndex()))
 	rows, err := f.GetRows(f.GetSheetName(f.GetActiveSheetIndex()), excelize.Options{RawCellValue: true})
+	if err != nil {
+		errStr := fmt.Errorf("Unable to get active sheet from the excel. ")
+		ctxLogger.WithError(err).Error(errStr)
+		errResult = append(errResult, errStr.Error())
+		return nil, errResult
+	}
+
 	for index, row := range rows {
 		// This is to skip the header row of the excel sheet
 		if index == 0 {
@@ -445,9 +476,16 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 
 		rawDate := row[1]
 		ld, err := strconv.ParseFloat(rawDate, 64)
+		if err != nil {
+			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020) ", rawDate)
+			ctxLogger.WithError(err).Error(errStr)
+			errResult = append(errResult, errStr.Error())
+			continue
+		}
+
 		leaveDate, err := excelize.ExcelDateToTime(ld, false)
 		if err != nil || dateContainsSpecialChars(rawDate) {
-			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020)", rawDate)
+			errStr := fmt.Errorf("Invalid entry for Leave Date: %v. Valid Format DD/MM/YYYY (Ex: 01/06/2020) ", rawDate)
 			if err != nil {
 				ctxLogger.WithError(err).Error(errStr)
 			}
@@ -462,10 +500,12 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 			errResult = append(errResult, errStr.Error())
 			continue
 		}
+
 		leaveType := row[3]
 		if leaveType == "" {
 			leaveType = row[4]
 		}
+
 		r := strings.NewReplacer("Carers", "Carer's",
 			"Unpaid", "Other Unpaid",
 			"Parental Leave (10 days for new family member)", "Parental Leave (Paid)",
@@ -481,6 +521,7 @@ func (service Service) extractDataFromKrow(ctx context.Context, errResult []stri
 		if len(row) == 7 {
 			desc = row[6]
 		}
+
 		leaveReq := model.KrowLeaveRequest{
 			LeaveDate:      leaveDate,
 			LeaveDateEpoch: leaveDate.UnixNano() / 1000000,
@@ -530,7 +571,6 @@ func (service Service) sesSendEmail(ctx context.Context, attachmentData string, 
 		return
 	}
 	contextLogger.Infof("Finished sesSendEmail func")
-	return
 }
 
 func populateEmailRecipients(emailTo string) []*string {
@@ -679,7 +719,7 @@ func containsString(s []string, e string) bool {
 }
 
 // dateContainsSpecialChars is a func to check if the leave date contains any special chars
-// The raw date from excel is supposed to be of the format 43949 for date 28/04/2020. If the
+// The raw date from the Excel is supposed to be of the format 43949 for date 28/04/2020. If the
 // date is not in this format it will be in either 28/04/2020 or 28-04-2020 which is then considered invalid
 func dateContainsSpecialChars(date string) bool {
 	return strings.Contains(date, "/") || strings.Contains(date, "-")

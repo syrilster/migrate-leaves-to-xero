@@ -48,12 +48,12 @@ This is a project to automate the leave migration process i.e. migrating the lea
 ![alt text](https://developer.xero.com/static/images/documentation/authflow.svg)
 
 # Implementation Details
-* This app is running in DigIO sandbox AWS account. Both the React frontend and the go backend is running as docker containers in the same EC2 instance.
+* This app is running in a sandbox AWS account. Both the React frontend and the go backend is running as docker containers in the same EC2 instance.
 * The `connect to Xero` button on the landing page redirects a user to the Xero login page. After successful Auth, the Auth token JSON (Valid for 30 mins) is written to the disk. The location can be changed in the .env file property AUTH_TOKEN_FILE_LOCATION.
 * A React Frontend (File Upload UI) is used to upload the leave extract in .xlsx format from Krow.
 * A Go Backend is used to process the leaves and apply leave in Xero.
 * Error and Audit reporting is sent to operations team email address. The from and to email can be configured in .env file. (Please add and verify the email address in AWS SES Dashboard)
 * Xero Auth process needs an HTTPS endpoint for the redirect URL and hence an AWS LB (Application Type) is used to route the HTTPS traffic to the Go backend running on HTTP.
-* A Route53 record set (LB as Alias target) has been added to leverage the existing hosted zone `sandbox.digio.com.au`.
+* A Route53 record set (LB as Alias target) has been added to leverage the existing hosted zone.
 
-![Leave Migration Tech Flow](images/Leave Migration Flow.png)
+![Leave Migration Tech Flow](images/Leave%20Migration%20Flow.png)
