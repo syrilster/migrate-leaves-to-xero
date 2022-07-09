@@ -22,7 +22,7 @@ push:
 	docker push ${APP}
 
 test:
-	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox) -coverprofile coverage.out -covermode count
+	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox | grep -v /test/ui) -coverprofile coverage.out -covermode count
 	go tool cover -func coverage.out
 
 sonar:

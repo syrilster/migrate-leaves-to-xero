@@ -20,7 +20,7 @@ jobs:
           GOPROXY: "https://proxy.golang.org"
         run: make build
 
-      - name: Blackbox tests
+      - name: Run UI tests
         env:
           GOPROXY: "https://proxy.golang.org"
         run: make uitest
