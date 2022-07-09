@@ -22,7 +22,7 @@ push:
 	docker push ${APP}
 
 test:
-	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox) -coverprofile coverage.out -covermode count
+	set -euxo pipefail; go test $(shell go list ./... | grep -v /test/blackbox | grep -v /test/ui) -coverprofile coverage.out -covermode count
 	go tool cover -func coverage.out
 
 sonar:
@@ -36,6 +36,12 @@ sonar:
 bbtest:
 	@echo "Running blackbox tests"
 	(docker-compose up --force-recreate --always-recreate-deps --abort-on-container-exit --build blackbox) || { docker-compose logs -t; exit 1; }
+	docker-compose down
+
+.PHONY: uitest
+uitest:
+	@echo "Running UI tests"
+	(docker-compose up --force-recreate --always-recreate-deps --abort-on-container-exit --build uitest) || { docker-compose logs -t; exit 1; }
 	docker-compose down
 
 test-coverage:

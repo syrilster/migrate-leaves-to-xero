@@ -1,5 +1,5 @@
 # pull official base image
-FROM node:13.12.0-alpine
+FROM node:18.4.0-alpine3.15
 
 ENV NPM_CONFIG_LOGLEVEL warn
 ARG app_env
@@ -9,8 +9,9 @@ RUN mkdir -p /frontend
 WORKDIR /frontend
 
 ADD package.json /frontend/package.json
-RUN npm install --silent
-RUN npm install react-scripts@3.4.1 -g --silent
+ADD package-lock.json /frontend/package-lock.json
+RUN npm install
+RUN npm install react-scripts@5.0.1
 
 # add `/app/node_modules/.bin` to $PATH
 ENV PATH /frontend/node_modules/.bin:$PATH

@@ -64,6 +64,20 @@ services:
       - blackboxapi
       - mountebank
 
+  uitest:
+    depends_on:
+      - web
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    environment:
+      WAIT_HOSTS: leave-migration-ui:3000
+    volumes:
+      - '.:/app'
+    command: sh -c "/wait && /bin/ui"
+    links:
+      - web
+
   mountebank:
     container_name: mountebank
     image: jkris/mountebank:latest
