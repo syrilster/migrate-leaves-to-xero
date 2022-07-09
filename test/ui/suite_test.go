@@ -34,6 +34,8 @@ func (a *apiSuite) SetupSuite() {
 	a.host = defaultHost
 }
 
+// Test_BasicHealthCheck is a test to verify that the UI service is able to serve correctly
+// without any errors. This is useful as a health check when updating to newer version of node and related dependencies.
 func (a *apiSuite) Test_BasicHealthCheck() {
 	url := fmt.Sprintf("http://%s", a.host)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
