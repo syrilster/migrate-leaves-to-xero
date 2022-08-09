@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/aws/aws-sdk-go v1.44.72
-	github.com/googleapis/gax-go/v2 v2.4.0
+	github.com/googleapis/gax-go/v2 v2.5.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
@@ -29,13 +29,13 @@ require (
 	github.com/xuri/efp v0.0.0-20220407160117-ad0f7a785be8 // indirect
 	github.com/xuri/nfp v0.0.0-20220409054826-5e722a1d9e22 // indirect
 	golang.org/x/crypto v0.0.0-20220408190544-5352b0902921 // indirect
-	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
+	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/api v0.78.0 // indirect
-	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3 // indirect
-	google.golang.org/grpc v1.46.0 // indirect
-	google.golang.org/protobuf v1.28.0 // indirect
+	google.golang.org/api v0.90.0 // indirect
+	google.golang.org/genproto v0.0.0-20220722212130-b98a9ff5e252 // indirect
+	google.golang.org/grpc v1.48.0 // indirect
+	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
