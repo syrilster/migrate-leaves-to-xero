@@ -88,7 +88,7 @@ github.com/richardlehane/msoleps/types
 # github.com/rs/cors v1.8.3
 ## explicit; go 1.13
 github.com/rs/cors
-# github.com/sirupsen/logrus v1.9.0
+# github.com/sirupsen/logrus v1.9.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
 # github.com/stretchr/objx v0.5.0
