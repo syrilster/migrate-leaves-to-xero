@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/aws/aws-sdk-go v1.44.269
-	github.com/googleapis/gax-go/v2 v2.9.0
+	github.com/googleapis/gax-go/v2 v2.9.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.5.1
