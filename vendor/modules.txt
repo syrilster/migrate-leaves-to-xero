@@ -88,7 +88,7 @@ github.com/richardlehane/mscfb
 # github.com/richardlehane/msoleps v1.0.3
 ## explicit
 github.com/richardlehane/msoleps/types
-# github.com/rs/cors v1.10.0
+# github.com/rs/cors v1.10.1
 ## explicit; go 1.13
 github.com/rs/cors
 # github.com/sirupsen/logrus v1.9.3
