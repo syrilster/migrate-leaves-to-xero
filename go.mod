@@ -3,7 +3,7 @@ module github.com/syrilster/migrate-leave-krow-to-xero
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go v1.55.3
+	github.com/aws/aws-sdk-go v1.55.4
 	github.com/googleapis/gax-go/v2 v2.13.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
