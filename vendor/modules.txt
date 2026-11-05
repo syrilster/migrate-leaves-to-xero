@@ -75,7 +75,7 @@ github.com/jmespath/go-jmespath
 # github.com/joho/godotenv v1.5.1
 ## explicit; go 1.12
 github.com/joho/godotenv
-# github.com/richardlehane/mscfb v1.0.7
+# github.com/richardlehane/mscfb v1.0.9
 ## explicit; go 1.18
 github.com/richardlehane/mscfb
 # github.com/richardlehane/msoleps v1.0.6
@@ -106,11 +106,11 @@ github.com/tealeg/xlsx
 # github.com/tiendc/go-deepcopy v1.7.2
 ## explicit; go 1.18
 github.com/tiendc/go-deepcopy
-# github.com/xuri/efp v0.0.1
+# github.com/xuri/efp v0.0.3-0.20260924042702-217b81952dec
 ## explicit; go 1.11
 github.com/xuri/efp
-# github.com/xuri/excelize/v2 v2.11.0
-## explicit; go 1.25.0
+# github.com/xuri/excelize/v2 v2.11.1
+## explicit; go 1.26.0
 github.com/xuri/excelize/v2
 # github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9
 ## explicit; go 1.15
@@ -155,7 +155,7 @@ go.yaml.in/yaml/v3
 ## explicit; go 1.26.0
 golang.org/x/crypto/md4
 golang.org/x/crypto/ripemd160
-# golang.org/x/net v0.61.0
+# golang.org/x/net v0.62.0
 ## explicit; go 1.26.0
 golang.org/x/net/html
 golang.org/x/net/html/atom
